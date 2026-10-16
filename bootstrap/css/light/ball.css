@@ -1,0 +1,112 @@
+.ball2 {
+  display: inline-block;
+  width: 15rem; /* Default size */
+  height: 15rem; /* Default size */
+  border-radius: 50%;
+  position: relative;
+  background: radial-gradient(circle at 100px 100px, #104625, #2dc541);
+  /* box-shadow: 0px 5px 6px rgb(50 50 50 / 55%); */
+}
+
+@keyframes zoom-in-zoom-out {
+  50% {
+    transform: scale(1, 1);
+  }
+  25% {
+    transform: scale(1.5, 1.5);
+  }
+  0% {
+    transform: scale(1, 1);
+  }
+}
+
+@keyframes mymove {
+  50% {
+    transform: rotate(10deg);
+  }
+}
+
+/* .ball3 {
+  position: absolute;
+  width: 94%;
+  height: 94%;
+  margin: 1%;
+  background: rgb(65, 138, 221);
+  border-radius: 50%;
+} */
+
+.ball4 {
+  position: absolute;
+  width: 94%;
+  height: 94%;
+  margin: 3%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 100px 100px, #ffffff, #15974b);
+}
+
+.ball5 {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  margin: 25%;
+  background: white;
+  border-radius: 50%;
+  animation: zoom-in-zoom-out 3s ease infinite;
+}
+
+.num {
+  position: relative;
+  font-weight: bold;
+  text-align: center;
+  font-size: 42px; /* Default size */
+  margin-top: 20px;
+  color: red;
+}
+
+.contains {
+  top: 2%;
+  margin-left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Media Queries */
+@media (max-width: 1200px) {
+  .ball2 {
+    width: 12rem;
+    height: 12rem;
+  }
+  .num {
+    font-size: 36px; /* Adjusted size */
+  }
+}
+
+@media (max-width: 992px) {
+  .ball2 {
+    width: 10rem;
+    height: 10rem;
+  }
+  .num {
+    font-size: 24px; /* Adjusted size */
+  }
+}
+
+@media (max-width: 768px) {
+  .ball2 {
+    width: 8rem;
+    height: 8rem;
+  }
+  .num {
+    font-size: 12px; /* Adjusted size */
+  }
+}
+
+@media (max-width: 576px) {
+  .ball2 {
+    width: 6rem;
+    height: 6rem;
+  }
+  .num {
+    font-size: 12px; /* Adjusted size */
+  }
+}

@@ -1,0 +1,145 @@
+/* Sun rays effect */
+.sun-ray {
+    position: absolute;
+    width: 150px; /* Default size */
+    height: 150px; /* Default size */
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(18, 156, 174, 0.4) 20%, rgba(255, 0, 0, 0) 60%);
+    /* animation: rayPulse 2s infinite; Animated rays effect */
+    z-index: -1; /* Place behind the circle */
+}
+
+/* Circle shape with sun-like gradient and shadow */
+.circle-container {
+    position: relative;
+    width: 180px; /* Default size */
+    height: 180px; /* Default size */
+    border-radius: 50%;
+    box-shadow: 0 0 30px rgba(0, 144, 160, 0.7);
+    overflow: hidden; /* Prevent text overflow */
+    /* animation: shadowPulse 2s infinite; Animated shadow effect */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: transparent;
+}
+
+.win-amount
+{
+    font-size: 50px;
+    font-weight: bold; 
+    color: white;
+}
+
+/* Winning amount styling */
+#win_amount {
+    font-size: 40px; /* Default size */
+    font-weight: bold;
+    color: white;
+    opacity: 0;
+    transform: scale(0.8); /* Slightly smaller scaling */
+    transition: transform 9s ease-in-out, opacity 9s ease-in-out;
+    text-align: center; /* Center align the text */
+}
+
+/* Animation: Circle shadow pulsing effect */
+@keyframes shadowPulse {
+    0% {
+        box-shadow: 0 0 30px rgba(255, 200, 0, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 60px rgba(255, 200, 0, 1);
+    }
+    100% {
+        box-shadow: 0 0 30px rgba(255, 200, 0, 0.7);
+    }
+}
+
+/* Animation: Sun rays pulsing effect */
+@keyframes rayPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Wave effect */
+.wave {
+    position: absolute;
+    width: 250px; /* Default size */
+    height: 250px; /* Default size */
+    border-radius: 50%;
+    border: 50px solid rgba(0, 128, 255, 0.6); /* More visible color */
+    animation: ripple 9s infinite; /* Slower animation */
+    opacity: 0.5; /* Increased opacity */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); /* Shadow for depth */
+}
+
+.wave::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 30px solid rgba(255, 255, 255, 0.4); /* Second larger wave */
+    animation: rippleLarge 11s infinite 1.5s; /* Larger ripple effect, delayed */
+    opacity: 0.5; /* Adjust opacity for visibility */
+}
+
+/* Animation for the smaller wave effect */
+@keyframes ripple {
+    0% {
+        transform: scale(0);
+        opacity: 1.8;
+    }
+    50% {
+        transform: scale(1);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0; 
+    }
+}
+
+/* Animation for the larger wave effect */
+@keyframes rippleLarge {
+    0% {
+        transform: scale(0);
+        opacity: 1.5;
+    }
+    50% {
+        transform: scale(1);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0; 
+    }
+}
+
+
+@media (max-width: 992px) {
+    .sun-ray {
+        width: 30px;
+        height: 30px;
+    }
+    .circle-container {
+        width: 100px;
+        height: 100px;
+    }
+    .win-amount {
+        font-size: 25px;
+    }
+    .wave {
+        width: 60px;
+        height: 60px;
+    }
+}

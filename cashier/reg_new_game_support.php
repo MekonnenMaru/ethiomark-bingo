@@ -1,0 +1,1333 @@
+<?php
+
+header('Content-Type: text/html; charset=utf-8');
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (!isset($_SESSION['loggedin']) || $_SESSION['role']!="cashier") {
+    header("Location: ../config/logout.php");
+}
+include_once '../config/Database.php';
+require_once '../config/CartelaResolver.php';
+require_once '../config/SupportCashierSchema.php';
+
+$db = Database::getInstance();
+$conn = $db->getConnection();
+
+$cashier_id = isset($_SESSION['cashier_id']) ? $_SESSION['cashier_id'] : '';
+support_cashier_ensure_defaults($conn, $cashier_id);
+
+$cartela_number = '';
+$round_number = '';
+
+if ($cashier_id)
+{
+    $exit_checks_open = true;
+
+    $query = "
+        SELECT 
+            game.`round_number`,
+            game.`cartela_number`, 
+            game.`iscompleted`
+        FROM `game` 
+        WHERE 
+            game.`cashier_id` = ?
+        ORDER BY game.`round_number` DESC
+        LIMIT 1;
+    ";
+
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $cashier_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($row = $result->fetch_assoc()) 
+    {
+        if ($row['iscompleted'] == 0) {
+            $round_number = $row['round_number'];
+            $cartela_number = str_replace(' ', '', $row['cartela_number']);
+        } 
+        else 
+        {
+            $cartela_number = str_replace(' ', '', $row['cartela_number']);
+            $round_number = $row['round_number'] + 1;
+        }
+    } 
+    else 
+    {
+        $round_number = 1;
+    }
+
+    if (isset($stmt)) {
+        $stmt->close();
+    }
+}
+
+// Get supportive cashiers for this main cashier
+$support_cashiers = [];
+$support_colors = [];
+if ($cashier_id) {
+    $support_query = "
+        SELECT sc.support_cashier_id, sp.color_code 
+        FROM support_cashiers sc
+        LEFT JOIN support_preferences sp ON sc.support_cashier_id = sp.support_cashier_id
+        WHERE sc.main_cashier_id = ? AND sc.is_active = 1
+    ";
+    $stmt_support = $conn->prepare($support_query);
+    $stmt_support->bind_param("s", $cashier_id);
+    $stmt_support->execute();
+    $support_result = $stmt_support->get_result();
+    while ($row = $support_result->fetch_assoc()) {
+        $support_cashiers[] = $row['support_cashier_id'];
+        $support_colors[$row['support_cashier_id']] = $row['color_code'] ?? '#FF5733';
+    }
+    $stmt_support->close();
+}
+
+// Get supportive selections for current round
+$support_selections = [];
+if ($round_number > 0 && $cashier_id) {
+    $selections_query = "
+        SELECT cs.cartela_number, cs.support_cashier_id, sp.color_code 
+        FROM collaborative_selections cs
+        LEFT JOIN support_preferences sp ON cs.support_cashier_id = sp.support_cashier_id
+        WHERE cs.main_cashier_id = ? AND cs.round_number = ? AND cs.is_selected = 1
+        ORDER BY cs.selected_time DESC
+    ";
+    $stmt_sel = $conn->prepare($selections_query);
+    $stmt_sel->bind_param("si", $cashier_id, $round_number);
+    $stmt_sel->execute();
+    $selections_result = $stmt_sel->get_result();
+    
+    while ($row = $selections_result->fetch_assoc()) {
+        if (!isset($support_selections[$row['cartela_number']])) {
+            $support_selections[$row['cartela_number']] = [];
+        }
+        $support_selections[$row['cartela_number']][] = [
+            'cashier_id' => $row['support_cashier_id'],
+            'color' => $row['color_code'] ?? '#FF5733'
+        ];
+    }
+    $stmt_sel->close();
+}
+?>
+
+<?php
+$cashier_id = isset($_SESSION['cashier_id']) ? $_SESSION['cashier_id'] : '';
+
+$count_cartela_amount = cartela_count_for_cashier($conn, $cashier_id);
+?>
+
+
+
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Ethiomark</title>
+    <meta name="viewport" content="width=1280, user-scalable=no">
+	<script src="../config/inactivity_detector.js"></script>
+    <link rel="stylesheet" href="../bootstrap/css/style.css">
+    <link rel="stylesheet" href="../bootstrap/css/register_new_game.css?v=6.002">
+    <script src="../bootstrap/js/jquery.js"></script>
+    <script src="../bootstrap/js/bootstrap.min.js"></script>
+    
+
+    <link rel="stylesheet" type="text/css" href="side-nav.css">
+
+    <style>
+        /* Supportive cashier selection styles */
+        .support-selected {
+            position: relative;
+        }
+        
+
+        .support-selected  { position: relative; border-top: 4px solid var(--support-color, #FF5733) !important; }
+        .support-selected::after {
+            content: '👥';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 12px;
+            background: rgba(255,255,255,0.9);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            border: 3px solid red;
+        }
+        
+        
+       
+        .support-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 25px;
+            white-space: nowrap;
+            z-index: 3000;
+            display: none;
+            margin-bottom: 8px;
+            border:3px solid red;
+        }
+        
+        .support-selected:hover .support-tooltip {
+            display: block;
+        }
+        
+        .support-info-panel {
+            background: rgba(25, 55, 70, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            margin: 10px auto;
+            max-width: 95%;
+            border-left: 4px solid #077C6C;
+        }
+        
+        .support-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            margin: 2px;
+            border-radius: 10px;
+            font-size: 11px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .color-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .support-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #aaa;
+        }
+        
+        .refresh-btn {
+            background: #077C6C;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .refresh-btn:hover {
+            background: #065c50;
+        }
+        
+        /* Add to existing styles */
+        .realtime-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            margin-left: 10px;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .realtime-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .realtime-connected .realtime-dot {
+            background-color: #4CAF50;
+        }
+        
+        .realtime-disconnected .realtime-dot {
+            background-color: #f44336;
+            animation: none;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+   
+</head>
+<body>
+    <script>
+        if (localStorage.getItem('enableSupportCashier') !== 'true') {
+            window.location.replace('reg_new_game.php');
+        }
+    </script>
+    <script>
+        document.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+            showAlert('Hello! You are using Ethiomark Bingo.', "success");
+        });
+    </script>
+
+    <div id="customAlert" class="custom-alert" style="display: block; position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+    <div id="user-content" >
+
+
+
+        <?php include_once("side-nav.php"); ?>
+
+        <div class="main-content" style="margin-top: 0px;padding-top:0px;">
+                    <p style="display: none;" id="cardnum"><?php echo $cartela_number; ?></p>
+                    <p style="display: none;" id="lastcardnum"></p>
+
+                    <div class='content'>
+                        <div class="balls">
+                            
+                            <div class="balls-line">
+                                
+                            <h1 style="margin-top: 1px;text-align: center;color: white;font-size: 38px" id="recored_new_game_round_number">  Game Round <span id="register_new_game_round"><?php echo $round_number; ?></span>    
+                                <br> <span id ="previw_typed_number"  style="color:gray;font-size:30px;"> [በ ኪቦርድ መመዝገብ ይችላሉ ⌨️⌨️] </span>
+                                <button onclick="openHelpModal()" style="margin-left: 20px; font-size: 20px;">❓ Help</button>
+                                <label style="display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; font-size: 16px; color: #d7e2ea; cursor: pointer; vertical-align: middle; white-space: nowrap;">
+                                    <input type="checkbox" id="enableSupportCashier" style="width: 16px; height: 16px; cursor: pointer;">
+                                    <span>Enable support cashier</span>
+                                </label>
+                                <button onclick="toggleSupportPanel()" style="margin-left: 10px; font-size: 20px; background: #4ECDC4; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer;">
+                                    👥 Support 
+                                    <span id="realtimeStatus" class="realtime-status">
+                                        <span class="realtime-dot"></span>
+                                        <span id="statusText">Live</span>
+                                    </span>
+                                </button>
+                            </h1>
+
+                            <!-- Support Panel -->
+                            <!-- Replace the support panel HTML with this: -->
+                            <div id="supportPanel" class="support-info-panel" style="display: <?php echo !empty($support_cashiers) ? 'block' : 'none'; ?>;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <div>
+                                        <strong>👥 Active Supportive Cashiers:</strong> 
+                                    </div>
+                                    <div>
+                                        <span id="supportSelectedCount">0</span> numbers found
+                                        <button class="refresh-btn" onclick="loadSupportSelections()">🔄 Check for New</button>
+                                        <button class="refresh-btn" style="background: #E67E22;" onclick="syncSupportToMain()">📥 Load Selections</button>
+                                    </div>
+                                </div>
+                                <!-- Support badges will be dynamically inserted here -->
+                                <div class="support-badges-container">
+                                    <?php foreach($support_cashiers as $support): ?>
+                                        <span class="support-badge">
+                                            <span class="color-dot" style="background: <?php echo $support_colors[$support] ?? '#FF5733'; ?>"></span>
+                                            <?php echo $support; ?>
+                                        </span>
+                                    <?php endforeach; ?>
+                                    <?php if(empty($support_cashiers)): ?>
+                                        <span style="color: #aaa; font-size: 14px;">No supportive cashiers added yet.</span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="support-stats">
+                                    <div>Total Active: <span id="supportCount"><?php echo count($support_cashiers); ?></span></div>
+                                    <div>Last Update: <span id="lastSupportUpdate">Just now</span></div>
+                                </div>
+                            </div>
+
+                            <div id="helpModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.6); z-index:9999;">
+                                <div style="background:#275762; color:white; width:90%; max-width:900px; margin:10% auto; padding:20px; border-radius:10px; position:relative;">
+                                    <span onclick="closeHelpModal()" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:34px;">&times;</span>
+                                    <h2 style="text-align:center;">🆘 እርዳታ</h2>
+                                    <ul style="font-size:26px;">
+                                        <li>⌫   በ Backspace የተጻፉትን ቁጥሮች ያስወግዱ</li>
+                                        <li>⏎   ኪቦርድ ላይ የሚፈልጉትን ቁጥር ከጻፉ በኋላ Enter ወይም space ሲጫኑ ቀጥታ ይመዘገባል።</li>
+                                        <li>❗  ቁጥሩ ከተዘረዘሩት ካርድ ቁትሮች መካከል መሆን አለበት</li>
+                                        <li>👥  የሌሎች ካሺየሮች የተመረጡ ቁጥሮች በላይኛው ቀለም ይታያሉ (ለማየት Support ን ጠቅ ያድርጉ)</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div id="typingHelper" style="position:fixed; top:20px; left:80px; background:#222; color:white; padding:15px 20px; border-radius:10px; font-size:20px; display:none; z-index:9999;">
+                                <div><b>⌨️ Typing:</b> <span id="typingHelperNumber" style="color:yellow; font-size:24px;"></span></div>
+                                <div id="typingHelperAction" style="font-size:18px; margin-top:5px; color:gray;"></div>
+                            </div>
+
+
+
+                            <script>
+                                function openHelpModal() {
+                                    document.getElementById("helpModal").style.display = "block";
+                                }
+
+                                function closeHelpModal() {
+                                    document.getElementById("helpModal").style.display = "none";
+                                }
+                                
+                                function toggleSupportPanel() {
+                                    const panel = document.getElementById('supportPanel');
+                                    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+                                }
+
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const supportCb = document.getElementById('enableSupportCashier');
+                                    if (!supportCb) return;
+                                    supportCb.checked = localStorage.getItem('enableSupportCashier') === 'true';
+                                    supportCb.addEventListener('change', function() {
+                                        localStorage.setItem('enableSupportCashier', this.checked ? 'true' : 'false');
+                                        if (!this.checked) {
+                                            window.location.href = 'reg_new_game.php';
+                                        } else {
+                                            location.reload();
+                                        }
+                                    });
+                                });
+
+                                // Optional: Close modal by clicking outside the box
+                                window.onclick = function(event) {
+                                    let modal = document.getElementById("helpModal");
+                                    if (event.target == modal) {
+                                        modal.style.display = "none";
+                                    }
+                                }
+                           </script>
+
+                            
+                            
+                            
+                            
+                            <h3 style="margin-left: 5px;"> <hr style="border: 0; height: 3px; background-color: #077C6C; margin: 5px 0; width: 95%; opacity: 0.9; padding: 5px 0;"/> </h3>
+                            
+
+                                <div class="container" id="circledNumbers">
+                                    
+                                    <!-- Circled numbers will be displayed here -->
+                                </div>
+                                <div class="next" id="pagination">
+                                    <button onclick="previousPage()">Previous</button>
+                                    <div id="pageButtons"></div>
+                                    <button onclick="nextPage()">Next</button>
+                                </div>
+                                <p style="display: none;" id="totalcard"><?php echo !empty($count_cartela_amount) ? $count_cartela_amount : 200; ?></p>
+                            </div>
+                        </div>
+                        
+                        <div id="regcard">
+                            <h1 style="letter-spacing: 2px;color: white;margin-top:10px;font-size: 38px">እየተመዘገቡ ያሉ ካርድ ቁጥሮች!</h1>    
+                            <table id="tablereg" style="color: white;"></table>
+                            
+                            
+                            <select required class="form-control" name="birr" id="birr" style="font-size:32px;font-weight: bold;padding: 7px; width: 30%">
+                                <option value="10">በ 10ብር</option>
+                                <option value="20">በ 20ብር</option>
+                                <option value="30">በ 30ብር</option>
+                                <option value="40">በ 40ብር</option>
+                                <option value="50">በ 50ብር</option>
+                                <option value="60">በ 60ብር</option>
+                                <option value="70">በ 70ብር</option>
+                                <option value="80">በ 80ብር</option>
+                                <option value="100">በ 100ብር</option>
+                                <option value="150">በ 150ብር</option>
+                                <option value="200">በ 200ብር</option>
+                                <option value="250">በ 250ብር</option>
+                                <option value="300">በ 300ብር</option>
+                                <option value="400">በ 400ብር</option>
+                                <option value="500">በ 500ብር</option>
+                                <option value="1000">በ 1000ብር</option>
+                            </select>
+
+                            <select required class="form-control" name="pattern" id="pattern" style="font-size:32px;font-weight: bold;padding: 7px; width: 45%">
+                                <option value="1">any one line</option>
+                                <option value="2">any two lines</option>
+                                <option value="3">any three lines</option>
+                                <option value="8">any vertical</option>
+                                <option value="9">any horizontal</option>
+                                <option value="7">Full</option>
+                                <option value="5">T</option>
+                                <option value="10">reverse T</option>
+                                <option value="6">X</option>
+                                <option value="4">L</option>
+                                <option value="11">reverse L</option>
+                                <option value="12">half above</option>
+                                <option value="13">half below</option>
+                            </select>
+
+                            <script>
+                                // On page load, check if there's a saved selection in local storage
+                                document.addEventListener('DOMContentLoaded', function () {
+                                    const birrSelect = document.getElementById('birr');
+                                    const patternSelect = document.getElementById('pattern');
+
+                                    const savedBirr = localStorage.getItem('selectedBirr');
+                                    const savedPattern = localStorage.getItem('selectedPattern');
+                                    
+                                    if (savedBirr) {
+                                        birrSelect.value = savedBirr;
+                                    }
+                                    if (savedPattern) {
+                                        patternSelect.value = savedPattern;
+                                    }
+
+                                    // Save the selected value to local storage when it changes
+                                    birrSelect.addEventListener('change', function () {
+                                        localStorage.setItem('selectedBirr', birrSelect.value);
+                                    });
+
+                                    patternSelect.addEventListener('change', function () {
+                                        localStorage.setItem('selectedPattern', patternSelect.value);
+                                    });
+                                });
+                            </script>
+
+
+                            
+
+                            <button class="login-btn" style="width: 55%;cursor: pointer;" id="play">PLAY</button> 
+                            <button class="login-btn" style="width: 20%;cursor: pointer;background-color: #BB191A;color:white;"  id="clearBtn">Clear</button>   
+                        </div> <!-- regcard closed here -->
+                        
+                    </div> <!-- content closed here -->
+
+                    <div id="resultContainer"></div>
+        </div>
+    </div>
+		
+	<script>
+
+			// Simulate login check (replace this with real check)
+			const isLoggedIn = localStorage.getItem('loggedin') === 'true';
+			// DOM elements
+			const userContent = document.getElementById('user-content');
+
+			// If the user is logged in, show user content
+			// If the user is not logged in, show overly
+			if (isLoggedIn) {
+				userContent.style.display = 'block';
+			}else
+            {
+                window.location.href = '../config/logout.php'
+            }
+			// Handle logout
+			const logoutBtn = document.getElementById('logoutbtn');
+			logoutBtn.addEventListener('click', function() {
+
+				localStorage.removeItem('loggedin');
+				localStorage.removeItem('cashier_id');
+				showAlert('Successfully loggedout!', 'success');
+				setTimeout(function() {
+					window.location.href = '../config/logout.php'
+				}, 1000);
+				
+			});
+
+			
+
+			// Function to show alert in the top right corner
+			function showAlert(message, type) 
+			{
+				const alertDiv = $('#customAlert');
+				alertDiv.html(message);
+				alertDiv.removeClass('custom-alert-success custom-alert-danger slide-out'); // Clear previous alert classes
+				alertDiv.addClass('custom-alert-' + type + ' slide-in'); // Add the appropriate class and slide-in
+
+				alertDiv.show(); // Show the alert
+
+				// Animate the alert by adding the slide-in class
+				setTimeout(function() {
+					alertDiv.removeClass('slide-in'); // Remove slide-in for smooth transition
+				}, 50); // Delay to allow for CSS transition to kick in
+
+				// Hide the alert after 3 seconds
+				setTimeout(function() {
+					alertDiv.addClass('slide-out'); // Add slide-out class for hiding animation
+					setTimeout(function() {
+						alertDiv.fadeOut(); // Fade out after the slide-out animation
+					}, 300); // Wait for the slide-out transition to complete
+				}, 3000);
+			}
+
+
+
+			//========================================================================================
+			//========================================================================================
+			//========================================================================================
+			//=============================load cashier information====================================
+			if (isLoggedIn) 
+			{
+                $(document).ready(function() 
+					{
+
+						// Set up click handlers for the side menu
+						$('#cashier_option_link').click(function () {
+							showContent('cashier_option_content');
+							toggleMenu();
+						});
+						
+						$('#card_record_link').click(function () {
+							showContent('card_record_content');
+							toggleMenu();
+						});
+
+						$('#play_bingo_link').click(function () {
+							showContent('play_bingo_content');
+							toggleMenu();
+						});
+						
+						$('#register_new_pllayer_link').click(function () {
+							showContent('reg_new_game_content');
+							toggleMenu();
+						});
+							function showContent(contentId) {
+									// Hide all content sections
+									const sections = ['card_record_content', 'play_bingo_content', 'cashier_option_content', 'reg_new_game_content'];
+									sections.forEach(section => $('#' + section).hide());
+
+									// Resetting inputs or fields in the hidden sections
+									sections.forEach(section => {
+										if (contentId !== section) {
+											$('#' + section + ' input, #' + section + ' textarea').val('');
+										}
+									});
+									// Direct navigation for specific content
+									if (contentId === 'play_bingo_content') {
+										window.location.href = 'index.php'; // Direct to bingo page
+										return; 
+									} else if (contentId === 'reg_new_game_content') {
+										window.location.href = 'reg_new_game.php'; // Direct to new game registration
+										return;
+									}
+									else if (contentId === 'cashier_option_content') {
+										window.location.href = 'report.php'; // Direct to new game registration
+										return;
+									}
+                                    else if (contentId === 'card_record_content') {
+										window.location.href = 'register_new_card.php'; // Direct to new game registration
+										return;
+									}
+									// Redirect if the clicked contentId is 'add_link'
+									if (contentId === 'add_link') {
+										window.location.href = 'your_redirect_url.php'; // Change to your desired URL
+										return; 
+									}
+
+									// Show the selected content for other sections
+									$('#' + contentId).show();
+								}
+
+						
+                        
+                        
+                        var form_data = {
+							get_cashier_data: localStorage.getItem('cashier_id'),
+						};
+						$.ajax({
+							url: "../config/DbFunction.php",
+							method: "POST",
+							data: form_data,
+							dataType: "JSON",
+							success: function(resp) {
+								// Check if the response contains data
+								if (resp.length > 0) 
+                                {
+									// Assuming the first record contains the cashier data
+									var cashier = resp[0]; // If there's at least one record
+									
+									// Set the cashier profile name from the fetched data
+									document.getElementById("cashier_profile_name").innerHTML = cashier.cashier_id;
+								} else {
+									// If no data found, you can handle the case accordingly
+									console.log("No cashier data found.");
+									showAlert('No data found for this cashier!', 'danger');
+								}
+							},
+							error: function(xhr, status, error) {
+								// Log the error for debugging
+								console.error("AJAX Error: ", status, error);
+								showAlert('Internal error occurred!', 'danger');
+							}
+						});
+						
+						// Start real-time updates
+						startRealTimeUpdates();
+						
+						// Also start when page becomes visible again
+						document.addEventListener('visibilitychange', function() {
+							if (!document.hidden) {
+								startRealTimeUpdates();
+							}
+						});
+						
+					});
+
+									
+			}
+			
+                    const circledNumbers = document.getElementById("circledNumbers");
+                    const totalNumbers = parseInt(document.getElementById("totalcard").innerText);
+                    const numbersPerPage = 200;
+                    const totalPages = Math.ceil(totalNumbers / numbersPerPage);
+                    const paginationDiv = document.getElementById("pagination");
+
+                    if (totalPages <= 1) {
+                        paginationDiv.style.display = 'none'; // Hide pagination if no pages
+                    } else {
+                        paginationDiv.style.display = 'flex'; // Show pagination if pages exist
+                    }
+
+                    let currentPage = 1;
+                    let selectedNum = [];
+                    
+                    // Store supportive selections - GLOBAL VARIABLE
+                    let supportSelections = <?php echo json_encode($support_selections); ?>;
+                    
+                    // Real-time connection
+                    let eventSource = null;
+
+                    function generateNumbers(startIndex) 
+                    {
+                        circledNumbers.innerHTML = "";
+                        for (let i = startIndex; i < startIndex + numbersPerPage && i <= totalNumbers; i++) {
+                            const number = document.createElement("div");
+                            number.classList.add("box");
+                            number.textContent = i;
+                            number.setAttribute("numb", i);
+                            
+                            // Highlight selected numbers
+                            if (selectedNum.includes(i)) {
+                                number.classList.add("snum");
+                            }
+                            
+                            // Highlight supportive selections
+if (supportSelections[i]) {
+    number.classList.add("support-selected");
+
+    // --- THE ONLY FIX NEEDED ---
+    // If the server sends an object {}, wrap it in an array [] so .length and .map work
+    let supporters = supportSelections[i];
+    if (!Array.isArray(supporters)) {
+        supporters = [supporters]; 
+    }
+    // ---------------------------
+
+    // Your original working logic below:
+    if (supporters.length === 1) {
+        number.style.setProperty('--support-color', supporters[0].color);
+    } else {
+        // Multiple supporters - create gradient
+        const colors = supporters.map(s => s.color).join(', ');
+        number.style.setProperty('--support-color', colors);
+    }
+
+    // Add tooltip
+    const tooltip = document.createElement('div');
+    tooltip.className = 'support-tooltip';
+    const supporterNames = supporters.map(s => s.cashier_id).join(', ');
+    tooltip.textContent = `Selected by: ${supporterNames}`;
+    number.appendChild(tooltip);
+}
+
+                            number.onclick = () => selecting(i); // Set the click event
+                            circledNumbers.appendChild(number);
+                        }
+
+                        // Update the display of selected numbers after generating new numbers
+                        updateSelectedNumbers();
+                    }
+
+                    // Function to show a specific page
+                    function showPage(page) {
+                        currentPage = page;
+                        const startIndex = (page - 1) * numbersPerPage + 1;
+                        generateNumbers(startIndex);
+                        updatePagination();
+                    }
+
+                    // Function to update pagination buttons
+                    function updatePagination() 
+                    {
+                        const pageButtonsContainer = document.getElementById("pageButtons");
+                        pageButtonsContainer.innerHTML = ""; // Clear existing buttons
+
+                        for (let i = 1; i <= totalPages; i++) {
+                            const button = document.createElement("button");
+                            button.textContent = i;
+                            button.onclick = () => showPage(i);
+                            if (i === currentPage) {
+                                button.disabled = true; // Disable button for the current page
+                            }
+                            pageButtonsContainer.appendChild(button);
+                        }
+                    }
+
+                    // Function for previous page
+                    function previousPage() {
+                        if (currentPage > 1) {
+                            showPage(currentPage - 1);
+                        }
+                    }
+
+                    // Function for next page
+                    function nextPage() {
+                        if (currentPage < totalPages) {
+                            showPage(currentPage + 1);
+                        }
+                    }
+
+                    // Initialize the first page
+                    showPage(1);
+
+
+                    // Function to update the display of selected numbers
+                    function updateSelectedNumbers() 
+                    {
+                        const table = document.getElementById("tablereg");
+                        // Clear existing rows
+                        while (table.rows.length > 0) {
+                            table.deleteRow(0);
+                        }
+
+                        let countrow = 0;
+                        for (let i = 0; i < selectedNum.length; i++) {
+                            if (i % 6 === 0) {
+                                const row = table.insertRow(countrow);
+                                countrow++;
+                            }
+                            const cell = table.rows[countrow - 1].insertCell(i % 6);
+                            cell.innerHTML = selectedNum[i];
+                            cell.className = "custom-cell"; // Add a class to the cell
+                        }
+
+                        // Show or hide the registration card based on selected numbers
+                        document.getElementById('regcard').style.display = selectedNum.length > 0 ? 'block' : 'none';
+                    }
+                    
+                    
+                    function syncSupportToMain() {
+                        const supportNumbers = Object.keys(supportSelections);
+                        console.log("DEBUG: Syncing numbers:", supportNumbers);
+                    
+                        if (supportNumbers.length === 0) {
+                            showAlert('No selections found to load.', 'danger');
+                            return;
+                        }
+                    
+                        let addedCount = 0;
+                        supportNumbers.forEach(numStr => {
+                            const num = parseInt(numStr);
+                            // Only select if not already selected by you
+                            if (!selectedNum.includes(num)) {
+                                selecting(num); 
+                                addedCount++;
+                            }
+                        });
+                        
+                        if (addedCount > 0) {
+                            showAlert(`Loaded ${addedCount} new numbers from support!`, 'success');
+                        } else {
+                            showAlert('All support numbers are already selected.', 'success');
+                        }
+                    }
+
+                    // Load supportive selections from server (for initial load)
+                    function loadSupportSelections() {
+                        console.log("DEBUG: Starting AJAX load for support selections...");
+                        const cashier_id = "<?php echo $cashier_id; ?>";
+                        const round_num = $("#register_new_game_round").text();
+                    
+                        $.ajax({
+                            url: '../supportive-cashier/get_support_selections.php',
+                            type: 'GET',
+                            data: { main_cashier_id: cashier_id, round_number: round_num },
+                            dataType: 'json',
+                            success: function(resp) {
+                                if (resp.success === true) {
+                                    console.log("DEBUG: Re-mapping selections...");
+                            
+                                    // FIX: Convert the array back into a keyed object
+                                    let newSelections = {};
+                                    
+                                    // Check if selections is an array or object
+                                    if (Array.isArray(resp.selections)) {
+                                        resp.selections.forEach(item => {
+                                            // If your PHP return has the card number as a property:
+                                            const cardNum = item.cartela_number; 
+                                            if (!newSelections[cardNum]) newSelections[cardNum] = [];
+                                            newSelections[cardNum].push({
+                                                cashier_id: item.support_cashier_id || item.cashier_id,
+                                                color: item.color_code || item.color
+                                            });
+                                        });
+                                    } else {
+                                        // If it's already an object, just use it
+                                        newSelections = resp.selections;
+                                    }
+                            
+                                    // Update the GLOBAL variable with the correctly formatted data
+                                    supportSelections = newSelections;
+                            
+                                    // Refresh UI
+                                    $('#supportSelectedCount').text(resp.count || Object.keys(supportSelections).length);
+                                    showPage(currentPage); 
+                                    
+                                    showAlert('Support data updated!', 'success');
+                                }
+                            },
+                            error: function(xhr) {
+                                console.error("DEBUG: AJAX Error!", xhr.responseText);
+                            }
+                        });
+                    }
+
+                    
+                    // REAL-TIME UPDATES FUNCTIONS
+                    // --- Full Enhanced Real-Time Updates ---
+function startRealTimeUpdates() {
+    // Stop SSE manually
+    if (eventSource) {
+        eventSource.close();   // closes the connection
+        eventSource = null;    // allows restarting later
+        console.log("🛑 SSE stopped manually");
+        updateConnectionStatus(false); // optional: update UI
+    }
+    else{
+        console.log("🛑 SSE stopped Before");
+    }
+
+
+    // Prevent duplicate connections
+    if (eventSource) {
+        console.warn("SSE already running");
+        return;
+    }
+
+    // const cashier_id = "<?php echo $cashier_id; ?>";
+    // const round_num  = $("#register_new_game_round").text();
+
+    // if (!cashier_id || !round_num) {
+    //     console.error("Missing SSE parameters");
+    //     return;
+    // }
+
+    // eventSource = new EventSource(
+    //     `../supportive-cashier/support_update.php?main_cashier_id=${cashier_id}&round_number=${round_num}`
+    // );
+
+    // /* ================= CONNECTION ================= */
+
+    // eventSource.onopen = () => {
+    //     console.log("✅ SSE Connected");
+    //     updateConnectionStatus(true);
+    // };
+
+    // eventSource.onerror = (err) => {
+    //     console.warn("⚠️ SSE Error – browser will auto-reconnect", err);
+    //     updateConnectionStatus(false);
+    //     // DO NOT close here – let browser reconnect
+    // };
+
+    // /* ================= REAL UPDATES ================= */
+
+    // eventSource.addEventListener("update", (event) => {
+    //     const payload = JSON.parse(event.data);
+
+    //     /*
+    //         payload = {
+    //           selections: [
+    //             { cartela_number, support_cashier_id, color_code }
+    //           ],
+    //           count,
+    //           timestamp
+    //         }
+    //     */
+
+    //     supportSelections = {}; // rebuild full state
+
+    //     payload.selections.forEach(item => {
+    //         const num = parseInt(item.cartela_number);
+
+    //         if (!supportSelections[num]) {
+    //             supportSelections[num] = [];
+    //         }
+
+    //         supportSelections[num].push({
+    //             cashier_id: item.support_cashier_id,
+    //             color: item.color_code
+    //         });
+    //     });
+
+    //     // Update count safely
+    //     document.getElementById('supportSelectedCount').innerText =
+    //         Object.keys(supportSelections).length;
+
+    //     // Refresh only visuals
+    //     const startIndex = (currentPage - 1) * numbersPerPage + 1;
+    //     generateNumbers(startIndex);
+    // });
+
+    // /* ================= OPTIONAL EVENTS ================= */
+
+    // eventSource.addEventListener("connected", (e) => {
+    //     console.log("🟢 Server confirmed connection", e.data);
+    // });
+
+    // eventSource.addEventListener("timeout", () => {
+    //     console.warn("⏱ SSE timeout – closing connection");
+    //     eventSource.close();
+    //     eventSource = null;
+    //     updateConnectionStatus(false);
+    // });
+}
+
+
+
+
+                    
+                    function processSupportUpdate(data) {
+                        // Clear previous selections
+                        supportSelections = {};
+                        
+                        // Process new selections
+                        if (data.selections && data.selections.length > 0) {
+                            data.selections.forEach(item => {
+                                const number = item.cartela_number;
+                                if (!supportSelections[number]) {
+                                    supportSelections[number] = [];
+                                }
+                                supportSelections[number].push({
+                                    cashier_id: item.support_cashier_id,
+                                    color: item.color_code || '#FF5733'
+                                });
+                            });
+                        }
+                        
+                        // Update active supporters
+                        if (data.active_supporters) {
+                            updateSupportPanel(data.active_supporters);
+                        }
+                        
+                        // Update display immediately
+                        updateSupportDisplay();
+                        updateSupportStats(data.count || 0);
+                    }
+                    
+                    function updateSupportDisplay() {
+                        // Update all visible numbers with support selections
+                        document.querySelectorAll('.box').forEach(box => {
+                            const number = parseInt(box.getAttribute('numb'));
+                            const supporters = supportSelections[number];
+                            
+                            // Remove existing support indicators
+                            box.classList.remove('support-selected');
+                            box.style.removeProperty('--support-color');
+                            
+                            // Remove existing tooltips
+                            const existingTooltip = box.querySelector('.support-tooltip');
+                            if (existingTooltip) {
+                                box.removeChild(existingTooltip);
+                            }
+                            
+                            // Add support indicator if number is selected by supporters
+                            if (supporters && supporters.length > 0) {
+                                box.classList.add('support-selected');
+                                
+                                // Set gradient color
+                                if (supporters.length === 1) {
+                                    box.style.setProperty('--support-color', supporters[0].color);
+                                } else {
+                                    const colors = supporters.map(s => s.color).join(', ');
+                                    box.style.setProperty('--support-color', colors);
+                                }
+                                
+                                // Add tooltip
+                                const tooltip = document.createElement('div');
+                                tooltip.className = 'support-tooltip';
+                                const supporterNames = supporters.map(s => s.cashier_id).join(', ');
+                                tooltip.textContent = `Selected by: ${supporterNames}`;
+                                box.appendChild(tooltip);
+                            }
+                        });
+                    }
+                    
+                    function updateSupportPanel(active_supporters) {
+                        const supportPanel = document.getElementById('supportPanel');
+                        if (!supportPanel) return;
+                        
+                        // Update supporter badges
+                        const badgesContainer = supportPanel.querySelector('.support-badges-container');
+                        if (!badgesContainer) {
+                            // Create container if it doesn't exist
+                            const container = document.createElement('div');
+                            container.className = 'support-badges-container';
+                            const supportStats = supportPanel.querySelector('.support-stats');
+                            if (supportStats) {
+                                supportPanel.insertBefore(container, supportStats);
+                            } else {
+                                supportPanel.appendChild(container);
+                            }
+                        }
+                        
+                        const container = supportPanel.querySelector('.support-badges-container');
+                        container.innerHTML = '';
+                        
+                        if (active_supporters && active_supporters.length > 0) {
+                            active_supporters.forEach(supporter => {
+                                const badge = document.createElement('span');
+                                badge.className = 'support-badge';
+                                badge.innerHTML = `
+                                    <span class="color-dot" style="background: ${supporter.color_code || '#FF5733'}"></span>
+                                    ${supporter.support_cashier_id}
+                                `;
+                                container.appendChild(badge);
+                            });
+                        } else {
+                            const message = document.createElement('span');
+                            message.style.color = '#aaa';
+                            message.style.fontSize = '14px';
+                            message.textContent = 'No supportive cashiers active';
+                            container.appendChild(message);
+                        }
+                        
+                        // Update supporter count
+                        document.getElementById('supportCount').textContent = active_supporters ? active_supporters.length : 0;
+                    }
+                    
+                    function updateSupportStats(count) {
+                        document.getElementById('supportSelectedCount').textContent = count;
+                        updateLastUpdateTime();
+                    }
+                    
+                    function updateLastUpdateTime() {
+                        const now = new Date();
+                        const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                        const element = document.getElementById('lastSupportUpdate');
+                        if (element) {
+                            element.textContent = timeStr;
+                        }
+                    }
+                    
+                    function updateConnectionStatus(connected) {
+                        const statusElement = document.getElementById('realtimeStatus');
+                        const statusText = document.getElementById('statusText');
+                        
+                        if (connected) {
+                            statusElement.className = 'realtime-status realtime-connected';
+                            statusText.textContent = 'Live';
+                        } else {
+                            statusElement.className = 'realtime-status realtime-disconnected';
+                            statusText.textContent = 'Offline';
+                        }
+                    }
+                    
+                    // Load initial support selections
+                    loadSupportSelections();
+                    
+                    // Restart connection if it drops (check every 10 seconds)
+                    setInterval(() => {
+                        if (!eventSource || eventSource.readyState === EventSource.CLOSED) {
+                            console.log("Connection lost, restarting...");
+                            startRealTimeUpdates();
+                        }
+                    }, 20000);
+
+                    
+                    let typedNumber = "";
+                    const previw_typed_number = document.getElementById("previw_typed_number");
+                    const helperBox = document.getElementById("typingHelper");
+                    const helperNumber = document.getElementById("typingHelperNumber");
+                    const helperAction = document.getElementById("typingHelperAction");
+
+                    function updateHelper() {
+                        helperNumber.innerText = typedNumber || "...";
+                        helperBox.style.display = "block";
+                    }
+
+                    function hideHelper(delay = 3000) {
+                        setTimeout(() => {
+                            helperBox.style.display = "none";
+                            helperAction.innerText = "";
+                        }, delay);
+                    }
+
+
+                    document.addEventListener("keydown", function (event) 
+                    {
+                        console.log("Key Pressed:", event.key);
+                        // previw_typed_number =  document.getElementById("previw_typed_number");
+                        helperAction.innerText = "🖊️ Number typed";
+                        updateHelper();
+
+                        if (event.key >= "0" && event.key <= "9") {
+                            typedNumber += event.key; // Append number
+                            
+                            helperAction.innerText = "🖊️ Number typed";
+                            updateHelper();
+                        } 
+                        else if (event.key === "Backspace") {
+                            typedNumber = typedNumber.slice(0, -1); // Remove last digit\
+                            // previw_typed_number.innerHTML = " <i style='color:red; font-size:30px;'>Typing... " + typedNumber + "</i>";
+                            
+                            helperAction.innerText = "❌ Deleted last digit";
+                            updateHelper();
+                        } 
+                        else if (event.key === "Enter" || event.key === " ") { // Space or Enter confirms selection
+                            // ✅ Prevent spacebar or Enter from triggering default browser actions
+                            event.preventDefault();
+
+
+                            if (typedNumber !== "") {
+                                let number = parseInt(typedNumber);
+                                
+                                if (!isNaN(number) && number >= 1 && number <= totalNumbers) {
+                                    selecting(number);
+                                    //console.log("✅ Number Selected:", number);
+                                } else {
+                                    showAlert(number+ " <i style='color:white;'>❌</i> የተሳሳተ ቁጥር ነው የነኩ እባክዎትን ከ 1 እስከ " + totalNumbers+" ቁጥር ብቻ ይንኩ !", "danger")
+                                }
+                                
+                                // previw_typed_number.innerHTML = " <i style='color:gray; font-size:30px;'>በ ኪቦርድ መመዝገብ ይችላሉ</i>";
+                                helperAction.innerText = "✅ Selected with Enter/Space";
+                                updateHelper();
+                                hideHelper(); // fade after a bit
+                                typedNumber = ""; // Reset after selection
+                            }
+                        }
+                    });
+
+
+                    //selecting numbers==============================================================================
+                    var cardnum = document.getElementById('cardnum').innerText;
+                    var lastcardnum = document.getElementById('lastcardnum').innerText;
+                    if (cardnum.trim() !== "") {
+                        var cards = cardnum.split(',').map(Number);
+                        for (var i = cards.length - 1; i >= 0; i--) {
+                            selecting(cards[i]);
+                        }
+                    }
+                    function selecting(a) 
+                    {
+                        var flag = 0;
+                        var index;
+
+                        if (selectedNum.length === 0) {
+                            selectedNum.push(a);
+                        } else if (selectedNum.length === 1 && selectedNum[0] === a) {
+                            selectedNum.splice(0, 1);
+                        } else {
+                            for (var i = selectedNum.length - 1; i >= 0; i--) {
+                                if (selectedNum[i] === a) {
+                                    flag = 1;
+                                    index = i;
+                                }
+                            }
+
+                            if (flag === 1) {
+                                selectedNum.splice(index, 1);
+                            } else {
+                                selectedNum.push(a);
+                                flag = 0;
+                            }
+                        }
+                        // Toggle the class before updating the display
+                        const element = document.querySelector(`[numb="${a}"]`);
+                        if (element) {
+                            element.classList.toggle('snum', selectedNum.includes(a)); // Use toggle with condition
+                        }
+
+                        // Update the display of selected numbers
+                        updateSelectedNumbers();
+                    }
+
+
+
+
+                     // Clear button functionality
+                    function clearSelectedNumbers() {
+                        // Clear the selected numbers array
+                        selectedNum = [];
+
+                        // Remove the 'snum' class from all elements
+                        const selectedElements = document.querySelectorAll('.snum');
+                        selectedElements.forEach(el => el.classList.remove('snum'));
+
+                        // Update the display
+                        updateSelectedNumbers();
+                    }
+
+                    // Attach the clear function to the button
+                    document.getElementById('clearBtn').addEventListener('click', clearSelectedNumbers);
+
+                    
+                    $("#play").on('click', function(event) 
+                    {
+                        var cashier_id = localStorage.getItem('cashier_id');
+                        var selectedcard = selectedNum.join(', ');  // Assuming 'selectedNum' is an array of selected card numbers
+                        var price = document.getElementById("birr").value;
+                        var pattern = document.getElementById("pattern").value;
+                        var register_new_game_round = document.getElementById("register_new_game_round").innerHTML;
+
+                        if (price !== "" && selectedcard !== "" && pattern !== "" && cashier_id !== null) {
+                            $.ajax({
+                                type: 'POST',
+                                url: '../config/DbFunction.php',
+                                data: {
+                                    register_new_game_round: register_new_game_round,
+                                    selectedcard: selectedcard,
+                                    price: price,
+                                    pattern: pattern,
+                                    cashier_id: cashier_id
+                                },
+                                dataType: 'JSON',
+                                success: function(resp) {
+                                    if(resp.status=="success")
+                                    {
+                                        if (resp.info) {
+                                            showAlert(resp.info, "success");
+                                            if (resp.game_round) {
+                                                document.getElementById("register_new_game_round").innerHTML = resp.game_round;
+                                            }
+                                        }
+                                        showAlert(resp.message, "success")
+                                        console.log(resp.message);
+                                        
+                                        // Set a delay of 2 seconds (2000 milliseconds)
+                                        setTimeout(function() {
+                                            window.location.href = '../cashier/index.php'; // Reload the top window
+                                        }, 1000);
+                                    }
+                                    else{
+                                        showAlert(resp.message, "danger")
+                                        
+                                    }
+                                    
+                                },
+                                error: function(xhr, status, error) {
+                                    // Handle errors if the AJAX request fails
+                                    console.error("AJAX Error: ", xhr.responseText);
+                                    showAlert(error.message, "danger")
+                                }
+                            });
+                        } else {
+                            // If any required field is missing, show an alert
+                            alert("Please fill in all the fields before submitting.");
+                        }
+                    });
+                    
+                    
+
+	</script>
+    
+</body>
+</html>

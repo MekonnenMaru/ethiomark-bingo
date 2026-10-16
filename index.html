@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethiomark</title>
+	<link rel="stylesheet" href="bootstrap/css/style.css">
+	<script src="bootstrap/js/jquery.js"></script>
+    <style>
+        #loadingSpinner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(19, 74, 90, 0.7); /* semi-transparent background */
+            z-index: 2000;
+            pointer-events: all; /* Block all interactions */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Spinner circle */
+        #loadingSpinner .spinner {
+            width: 70px;
+            height: 70px;
+            border: 4px solid rgba(0, 123, 255, 0.2);
+            border-top-color: #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Text below the spinner */
+        #loadingSpinner .loading-text {
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #007bff;
+        }
+
+        /* Rotation animation */
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+         .disable-pointer {
+            pointer-events: none;
+            opacity: 0.6; /* Optional for a visual indication */
+        }
+
+        button:disabled {
+            pointer-events: none; /* Disable pointer interactions */
+            opacity: 0.6; /* Optional: To visually indicate the button is disabled */
+        }
+
+    </style>
+</head>
+<body >
+	<div id="customAlert" class="custom-alert" style="display: none; position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner">
+       <div class="spinner"></div>
+       <div class="loading-text">Loading...</div>
+   </div>
+
+
+
+    
+		<!-- login -->
+		<div class="login-center-wrapper" id="login-part" style="display: none;">
+			<div class="login-container" >
+				<div class="logo-container">
+					<div class="login-logo">
+						<img src="assets/images/logo.png" alt="Logo">
+					</div>
+				</div>
+				<span class="login-text">LOGIN</span>
+				
+				
+				
+				
+				<form id="loginform" method="post" >
+					<div class="login-input-group">
+						<label class="login-label" for="cashier_id">Cashier ID</label>
+						<input class="login-input" type="text" name="cashier_id" id="cashier_ids"  placeholder="cashier id" required>
+						<input type="text" name="login_form_submitted"  hidden>
+					</div>
+					<div class="login-input-group">
+						<label class="login-label" for="password">Password</label>
+						<input class="login-input" type="password" name="password" id="passwords" placeholder="Password" required>
+					</div>
+					<div class="login-input-group">
+						<input type="checkbox" id="rememberMe" name="rememberMe" checked onchange="this.checked = true;">
+						<label for="rememberMe">Remember Me</label>
+					</div>
+
+					<button class="login-btn" type="submit">Login</button>
+				</form>
+				<p class="login-p">
+					Don't have an account? <a class="login-a" href="#">Sign Up</a>
+				</p>
+			</div>
+		</div>
+
+	<script>
+    // Show the loader by default (page starts loading)
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    // On page fully loaded
+    window.addEventListener('DOMContentLoaded', () => {
+        // Auto-fill remembered credentials
+        const rememberedID = localStorage.getItem('remembered_cashier_id');
+        const rememberedPassword = localStorage.getItem('remembered_password');
+
+        if (rememberedID && rememberedPassword) {
+            document.getElementById('cashier_ids').value = rememberedID;
+            document.getElementById('passwords').value = rememberedPassword;
+        }
+
+        // Hide loader when everything is ready
+        setTimeout(() => {
+            loadingSpinner.style.display = 'none';
+        }, 300); // small delay for smoother transition
+    });
+
+    // Login check
+    const isLoggedIn = localStorage.getItem('loggedin') === 'true';
+    const loginPart = document.getElementById('login-part');
+    const loginform = document.getElementById('loginform');
+
+    const loginButton = document.querySelector('.login-btn');
+    resetLoginFormState();
+
+    if (isLoggedIn) {
+        window.location.href = "cashier/index.php"; // redirect if already logged in
+    } else {
+        loginPart.style.display = '';
+    }
+
+    // Handle login form submission
+    loginform.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Show loader while login is processing
+        loadingSpinner.style.display = 'flex';
+        
+        const cashier_id = document.getElementById('cashier_ids').value.trim();
+        const password = document.getElementById('passwords').value.trim();
+        const rememberMe = document.getElementById('rememberMe').checked;
+        var form_data = $(this).serialize();
+
+        if (cashier_id !== '' && password !== '') {
+            // Disable interactions and show loader
+               loginButton.disabled = true;
+               loginButton.innerHTML = 'Logging in...';
+               loginform.classList.add('disable-pointer');
+               loadingSpinner.style.display = 'flex';
+
+               
+            $.ajax({
+                url: "config/DbFunction.php",
+                method: "POST",
+                data: form_data,
+                dataType: "JSON",
+                success: function(resp) {
+                    loadingSpinner.style.display = 'none';
+                    resetLoginFormState();
+
+                    if (resp.login_status === 'success') {
+                        showAlert('Successfully logged in!', 'success');
+                        localStorage.setItem('loggedin', 'true');
+                        localStorage.setItem('cashier_id', cashier_id);
+
+                        if (rememberMe) {
+                            localStorage.setItem('remembered_cashier_id', cashier_id);
+                            localStorage.setItem('remembered_password', password);
+                        }
+
+                        setTimeout(function() {
+                            window.location.href = "cashier/index.php";
+                        }, 1000);
+                    } else if (resp.login_status !== '') {
+                        showAlert(resp.login_status, 'danger');
+                    } else if (resp.error) {
+                        showAlert(resp.error, 'danger');
+                    } else {
+                        showAlert('Unexpected error occurred!', 'danger');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    loadingSpinner.style.display = 'none';
+                    resetLoginFormState();
+
+                    console.error("AJAX Error: ", status, error);
+                    showAlert('Internal error occurred!', 'danger');
+                }
+            });
+        } else {
+            loadingSpinner.style.display = 'none';
+            resetLoginFormState();
+
+            alert('Please enter both cashier_id and password');
+        }
+    });
+
+    // Function to reset the form state after response
+       function resetLoginFormState() {
+           loginButton.disabled = false;
+           loginButton.innerHTML = 'Login';
+           loginform.classList.remove('disable-pointer');
+       }
+
+    // Alert function
+    function showAlert(message, type) {
+        const alertDiv = $('#customAlert');
+        alertDiv.html(message);
+        alertDiv.removeClass('custom-alert-success custom-alert-danger slide-out');
+        alertDiv.addClass('custom-alert-' + type + ' slide-in');
+        alertDiv.show();
+        setTimeout(() => alertDiv.removeClass('slide-in'), 50);
+        setTimeout(() => {
+            alertDiv.addClass('slide-out');
+            setTimeout(() => alertDiv.fadeOut(), 300);
+        }, 3000);
+    }
+</script>
+
+
+</body>
+</html>

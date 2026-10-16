@@ -1,0 +1,711 @@
+		body {
+           
+			/* justify-content: flex-start; */
+			height: 100vh; /* Center content vertically */
+			position: relative; /* For overlay positioning */
+			overflow-y: auto; /* Prevent overflow */
+			color: #000;
+			margin: 0px;
+			padding: 0;
+			/* background: url('../assets/images/background4.jpg') no-repeat center center fixed; */
+			background-color: rgb(3, 46, 59);
+			background-size: cover;
+			font-weight: 400;
+			font-family: 'Arial', sans-serif; /* Replace with your preferred font */
+			font-size: 20px;
+		}
+
+
+		/* Derash Box Styles */
+		.derash-box {
+			background-color: #0a3941;
+			width: 80%;
+			height: 80%;
+			border-radius: 10px;
+			padding: 0px;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			color: white;
+			text-align: center;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+			position: relative;
+		}
+
+		.derash-box .derash-content {
+			z-index: 1;
+		}
+
+		.derash-box .amount {
+			display: inline-block;
+			font-size: 50px;
+			font-weight: 900;
+		}
+
+		.derash-box .derash-line {
+			width: 80%;
+			height: 8px;
+			background-color: #2C866A;
+			margin-top: 10px;
+			z-index: 1;
+		}
+
+		.derash-details {
+			font-style: italic;
+			display: flex;
+			justify-content: space-between; /* Align children to left and right */
+			align-items: center; /* Vertically center the content */
+			width: 100%; /* Ensure the container spans full width */
+			padding: 10px; /* Add some inner spacing */
+			box-sizing: border-box; /* Include padding in width calculation */
+		}
+		
+		.derash-details .total-card {
+			text-align: left;
+			font-size: 18px;
+			color: rgb(134, 129, 129);
+		}
+		
+		.derash-details .total-calls {
+			text-align: right;
+			font-size: 35px;
+			color: rgb(255, 255, 255);
+			font-weight: 700;
+		}
+		
+
+		.derash-box .total-calls {
+			font-size: 30px;
+		}
+
+		/* Derash Box Styles for Small Screens */
+		@media (max-width: 900px) {
+			.derash-box {
+			width: 95%; /* Adjust width for smaller screens */
+			height: auto; /* Allow height to adjust naturally */
+			padding: 10px; /* Reduce padding */
+			border-radius: 5px; /* Smaller border radius */
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); /* Softer shadow */
+			}
+		
+			.derash-box .amount {
+			font-size: 30px; /* Reduce font size */
+			}
+		
+			.derash-box .derash-line {
+			width: 90%; /* Adjust width to fit */
+			height: 6px; /* Slightly smaller height */
+			}
+		
+			.derash-details {
+			flex-direction: column; /* Stack children vertically */
+			align-items: flex-start; /* Align to the left */
+			padding: 5px; /* Reduce padding */
+			}
+		
+			.derash-details .players {
+			font-size: 10px; /* Smaller font size */
+			margin-bottom: 5px; /* Add spacing between stacked items */
+			}
+		
+			.derash-details .total-calls {
+			font-size: 25px; /* Reduce font size */
+			font-weight: 600; /* Adjust font weight */
+			text-align: left; /* Align to the left */
+			}
+		
+			.derash-box .total-calls {
+			font-size: 20px; /* Further reduction for consistency */
+			}
+		}
+  
+/* ffffffffffffffooooooooooooooooooooooooter */
+		.footer {
+			color: #fff; /* Text color */
+			padding: 20px 0;
+			text-align: center;
+			position: relative;
+		}
+
+		.slide-in {
+			transform: translateY(20px);
+			opacity: 0;
+			animation: slideIn 0.5s forwards;
+		}
+
+		@keyframes slideIn {
+			to {
+				transform: translateY(0);
+				opacity: 1;
+			}
+		}
+
+		.footer-content {
+			animation: slideIn 0.5s forwards;
+		}
+/* nnnnnnnnnnnnnnnnnnnnnnnnnnnaaaaaaaaaaaaaaaaaaaaaavvvvvvvvvvvvvvvvvvvv */
+
+		/* .main-content style */
+        .main-content 
+		{
+            flex-grow: 1;
+            margin-left: 0px;  /* Space for the sidenav */
+            padding: 100; /* Remove padding on all sides */
+            min-height: 100vh;   /* Minimum height of the viewport */
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            width: calc(100% - 8px); /* Adjust width to fill the remaining space */
+        }
+
+        /* #play_bingo_content should take up all available space */
+        #play_bingo_content {
+            flex-grow: 1;  /* Take up the available space in the container */
+            position: relative;
+            overflow: hidden; /* Prevent overflow if necessary */
+			min-width: 1800px;
+        }
+
+        /* The iframe should fill its parent (play_bingo_content) */
+        #play_bingo_content iframe {
+            width: 100%;   /* Take full width of the container */
+            height: 100%;  /* Take full height of the container */
+            border: none;
+			min-height: 1000px;
+        }
+		
+		
+		/* #play_bingo_content should take up all available space */
+        #reg_new_game_content {
+            flex-grow: 1;  /* Take up the available space in the container */
+            position: relative;
+            overflow: hidden; /* Prevent overflow if necessary */
+        }
+
+        /* The iframe should fill its parent (play_bingo_content) */
+        #reg_new_game_content iframe {
+            width: 100%;   /* Take full width of the container */
+            height: 100%;  /* Take full height of the container */
+            border: none;
+        }
+
+
+		
+/*------------------------------------------------------LOGIN-----------------------------------*/
+		.login-center-wrapper {
+			display: flex;                /* Use flexbox for centering */
+			justify-content: center;      /* Center horizontally */
+			align-items: center;          /* Center vertically */
+			height: 100vh;               /* Full viewport height */
+			width: 100vw;                /* Full viewport width */
+			background-color: #0c474e;   /* Optional: Background color for the wrapper */
+			padding: 0px;
+			color: white;
+		}
+
+		.login-container {
+			background-color: rgb(31, 16, 16);
+			padding: 40px;
+			border-radius: 10px;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+			width: 100%;
+			max-width: 400px;            /* Maximum width of the container */
+			text-align: center;
+		}
+
+		.logo-container {
+			display: flex;               /* Use flexbox for centering */
+			justify-content: center;     /* Center the logo horizontally */
+			margin-bottom: 10px;        /* Space below the logo */
+		}
+
+		.login-logo {
+			border-radius: 50%;         /* Make the logo circular */
+			overflow: hidden;           /* Hide overflow to maintain circle shape */
+			width: 100px;               /* Set fixed width for the circular logo */
+			height: 100px;              /* Set fixed height for the circular logo */
+			display: flex;              /* Use flexbox to center the image */
+			justify-content: center;     /* Center horizontally */
+			align-items: center;        /* Center vertically */
+			background-color: #f4f4f4;  /* Optional: background color for the circle */
+		}
+
+		.login-logo img {
+			width: 100%;                /* Make image take full width of container */
+			height: auto;               /* Maintain aspect ratio */
+		}
+
+		.login-text {
+			font-size: 34px;            /* Font size for the login text */
+			color: #ffffff;                /* Color for the login text */
+			text-align: center;         /* Center text */
+			display: block;             /* Ensure it takes up full width */
+			margin-top: 10px;           /* Space above the text */
+		}
+
+		.login-h2 {
+			text-align: center;         /* Center the login heading */
+			margin-bottom: 20px;        /* Space below the heading */
+			font-size: 24px;
+			color: #333;
+		}
+
+		/* Keep the rest of your CSS as is */
+
+
+		.login-h2 {
+			margin-bottom: 20px;
+			font-size: 24px;
+			color: #333;
+		}
+
+		.login-input-group {
+			margin-bottom: 15px;
+			text-align: left;
+		}
+
+		.login-label {
+			display: block;
+			margin-bottom: 5px;
+			color: #8a8989;
+		}
+
+		.login-input {
+			width: 100%;
+			padding: 10px;
+			border: 1px solid #ddd;
+			border-radius: 5px;
+			font-size: 16px;
+		}
+
+		button.login-btn {
+			width: 100%;
+			padding: 12px;
+			background-color: #ff9800;
+			border: none;
+			color: black;
+			font-size: 28px;
+			font-weight: bold;
+			border-radius: 5px;
+			cursor: pointer;
+			margin-top: 10px;
+		}
+
+		button.login-btn:hover {
+			background-color: #e67e22;
+		}
+
+		.login-p {
+			margin-top: 15px;
+			color: #666;
+		}
+
+		.login-a {
+			color: #ff9800;
+			text-decoration: none;
+		}
+
+		.login-a:hover {
+			text-decoration: underline;
+		}
+
+
+
+		/*------------------------------------------------------ALERT-----------------------------------*/
+
+		/* Base styles for alerts */
+		.alert {
+			padding: 15px;
+			margin-bottom: 20px;
+			border: 1px solid transparent;
+			border-radius: 4px;
+			margin-right: 10px;
+		}
+
+		/* Success alert */
+		.alert-success {
+			color: #155724;
+			background-color: #d4edda;
+			border-color: #c3e6cb;
+		}
+
+		/* Info alert */
+		.alert-info {
+			color: #0c5460;
+			background-color: #d1ecf1;
+			border-color: #bee5eb;
+		}
+
+		/* Warning alert */
+		.alert-warning {
+			color: #856404;
+			background-color: #fff3cd;
+			border-color: #ffeeba;
+		}
+
+		/* Danger alert */
+		.alert-danger {
+			color: #721c24;
+			background-color: #f8d7da;
+			border-color: #f5c6cb;
+		}
+
+		/* Light alert */
+		.alert-light {
+			color: #818182;
+			background-color: #fefefe;
+			border-color: #fdfdfe;
+		}
+
+		/* Dark alert */
+		.alert-dark {
+			color: #f8f9fa;
+			background-color: #343a40;
+			border-color: #d6d8d9;
+		}
+
+		.custom-alert {
+			padding: 15px;
+			border-radius: 5px;
+			color: #fff;
+			transition: all 0.5s ease-in-out; /* Smooth transition for showing/hiding */
+			margin-right: 40px;
+			right: 20px;
+			opacity: 0; /* Start hidden */
+			transform: scale(0.8); /* Start smaller */
+			animation: zoomIn 0.5s ease-out forwards, borderWave 2s linear infinite; /* Zoom-in and border wave animations */
+			position: relative; /* Required for pseudo-elements */
+			border: 2px solid transparent; /* Base border style */
+		}
+		
+		/* Variants */
+		.custom-alert-success {
+			background-color: #4CAF50; /* Green */
+			border-color: #ffffff;
+		}
+		
+		.custom-alert-danger {
+			background-color: #f44336; /* Red */
+			border-color: #ffffff;
+		}
+		
+		/* Zoom-In Keyframes */
+		@keyframes zoomIn {
+			0% {
+				transform: scale(0.8);
+				opacity: 0;
+			}
+			50% {
+				transform: scale(1.1); 
+				opacity: 1; 
+			}
+			100% {
+				transform: scale(1);
+				opacity: 1; 
+			}
+		}
+		
+		
+		/* Optional Slide-Out with Zoom */
+		.custom-alert.slide-out {
+			animation: zoomOut 1s ease-out forwards;
+		}
+		
+
+	/* bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbiiiiiiiiiiiiiiiiiiiiiiiiiinnnnnnnnnnnnnnnnnnnnnnnngggggggggggggggggggggggggggggggg */
+
+		#bingoTable {
+			border-collapse: separate; /* Use separate borders to allow spacing */
+			border-spacing: 5px; /* Space between cells */
+			width: 90%;
+			margin: auto;
+			background-color: #003366;
+			color: #000000;
+			border-radius: 10px;
+			text-align: center;
+			margin: 10px;
+			padding: 40px;
+		}
+		
+		#bingoTable td, #bingoTable th {
+			padding: 10px; /* Adds space inside the cells */
+			border: 1px solid rgb(28, 100, 105);
+			width: 10%;
+			height: 60px; /* Consistent height */
+			font-size: 22px;
+			font-weight: bold;
+			background-color: #ffffff;
+			color: #000;
+			text-align: center;
+			vertical-align: middle; /* Ensure content is centered vertically */
+			border-radius: 5px; /* Rounded corners for cells */
+			position: relative;
+		}
+		#bingoTable  th {
+			background-color:  rgb(6, 58, 61);
+			color: wheat;
+			font-size: 50px;
+		}
+		
+		/* Free cell styles */
+		#bingoTable .free-cell {
+			background-color: #FFD700;
+			color: #000000;
+			content: '★';
+		}
+		
+		
+		.circle {
+			width: 20px;
+			height: 20px;
+			margin: auto;
+			border-radius: 50%;
+			background-color: transparent; /* Set background to transparent */
+			border: 4px solid red; /* Optional: You can add a border to make the circle visible */
+		}
+		
+		.highlighted {
+			background-color: lightblue; /* Background color for highlighted cells */
+		}
+		
+		
+		
+		@media (max-width: 900px) {
+			#bingoTable {
+				width: 100%;
+				margin: 5px;
+			}
+			#bingoTable th {
+				font-size: 30px;
+				letter-spacing: 5px;
+			}
+			#bingoTable td {
+				width: 40px;
+				height: 40px;
+				font-size: 20px;
+			}
+			.circle {
+				display: none;
+			}
+		}
+			
+
+
+		/* recent numberrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr */
+					
+			/* 5 recent number */
+			.bingo-call {
+				width: 5%;
+				max-width: 70px;
+				height: 3.0rem;
+				border-radius: 50%;
+				border: 1 px solid rgb(4, 49, 65);
+				text-align: center;
+				color: white;
+				z-index: 2;
+				margin-left: 0.9rem;
+				font-size: 70px;
+				font-weight: 900;
+			}
+			#bingo-table {
+				border-collapse: collapse;
+				margin: 0 auto; /* This centers the table */
+				border-color: 1px solid red;
+			}
+			.bingo-call {
+				border: 2px solid rgb(5, 34, 37); /* Set border color to blue */
+			}
+			
+			.lastcall {
+				font-size: 2rem;
+				font-weight: 900;
+				color: #8ebdc9;
+				text-align: center;
+			}
+
+			@media (max-width: 900px) {
+				.bingo-call {
+					width: 2%;
+					height: 1.0rem;
+					font-size: 12px;
+				}
+				.lastcall {
+					font-size: 12px;
+					font-weight: 400;
+					color: #fff;
+					text-align: center;
+				}
+			}
+		
+    /* cccccccccccccccccccccaaaaaaaaaaaaaaaaaaaarrrrrrrrrrddddddddd */
+	
+	   .cardeditTable input[type="text"] {
+			border: 2px solid #ccc;
+			font-size: 26px;
+			letter-spacing: 1px;
+			font-weight: bolder;
+			text-align: center;
+			padding: 5px;
+			margin: 0px;
+			width: 100%; /* Adjust the width as needed */
+			box-sizing: border-box;
+			position: relative;
+			left: 0px;
+		}
+		.cardeditTable input::placeholder {
+			font-size: 18px; /* Change to your desired size */
+			color: #999; /* Change the color of the placeholder */
+			font-style: italic; /* Optional: italicize the placeholder text */
+		}
+
+		.b{
+			font-size: 30px;
+			background: rgb(2,0,36);
+			background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%);
+			color: white;
+			text-align: center;
+		}
+		.i{
+			font-size: 30px;
+			background: rgb(2,0,36);
+			background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(121,9,13,1) 100%, rgba(0,212,255,1) 100%);
+			color: white;
+			text-align: center;
+		}
+		.n{
+			font-size: 30px;
+			background: rgb(36,26,0);
+			background: linear-gradient(90deg, rgba(36,26,0,1) 0%, rgba(100,100,6,1) 1%, rgba(232,148,22,1) 100%, rgba(0,212,255,1) 100%);
+			color: white;
+			text-align: center;
+		}
+		.g{
+			font-size: 30px;
+			background: rgb(36,26,0);
+			background: linear-gradient(90deg, rgba(36,26,0,1) 0%, rgba(91,60,6,1) 1%, rgba(232,148,22,1) 100%, rgba(0,212,255,1) 100%);
+			color: white;
+			text-align: center;
+		}
+		.o{
+			font-size: 30px;
+			 background: linear-gradient(178.6deg, rgb(20, 36, 50) 11.8%, rgb(124, 143, 161) 83.8%);
+			 color: white; 
+			 text-align: center;
+		}
+		.card-number{
+			text-align: center;
+			font-size: 30px;
+			color: black;
+			padding: 5px;
+			
+			letter-spacing: 1px;
+			font-weight: bolder;
+			text-align: center;
+		}
+		.reg-card-button-container {
+			display: flex;
+			justify-content: center; /* Centers the button horizontally */
+			margin-top: 20px; /* Optional: Adds some spacing above the button */
+		}
+
+		.register-card-submit-btn {
+			width: 50%; /* Button width */
+			font-size: 26px;
+			letter-spacing: 1px;
+			font-weight: bolder;
+			text-align: center;
+			background-color: #f5a623;
+			border: none; /* Remove default border */
+			color: white; /* Text color */
+			padding: 10px 20px; /* Padding for better appearance */
+			border-radius: 5px; /* Rounded corners */
+			cursor: pointer; /* Change cursor on hover */
+			transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transitions */
+		}
+
+		.register-card-submit-btn:hover {
+			background-color: #e59400; /* Darker shade on hover */
+			transform: scale(1.05); /* Slightly enlarge on hover */
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Add shadow on hover */
+		}
+
+
+		/* tablellllllllllllllllllllllllllllllllllllllllllllllll */
+		
+		.table-container {
+			max-width: 1200px;
+			margin: 0 auto;
+		}
+
+		.search-input {
+			padding: 10px;
+			margin-right: 5px;
+			width: 300px;
+			font-size: 16px;
+			float: right;
+		}
+
+		.items-per-page {
+			padding: 10px;
+			margin: 10px 0;
+		}
+
+		.table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-top: 20px;
+			border: 1px solid #155c69;
+		}
+
+		.table th, table td {
+			padding: 10px;
+			text-align: left;
+			border-bottom: 1px solid #ddd;
+		}
+
+		.table th {
+			background-color: #f2f2f2;
+		}
+
+		.table tbody tr:hover {
+			background-color: #f9f9f9;
+		}
+
+
+
+		
+		.pagination {
+			margin-top: 20px;
+			text-align: center;
+		}
+
+		.pagination button {
+			padding: 10px 15px;
+			margin: 0 5px;
+			cursor: pointer;
+			border: none;
+			background-color: #007bff;
+			color: white;
+			border-radius: 5px;
+		}
+
+		.pagination button:disabled {
+			background-color: #ccc;
+			cursor: not-allowed;
+		}
+
+		.pagination button:hover {
+			background-color: #0056b3;
+		}
+
+		.action {
+			width: 100px;
+			text-align: center;
+		}
+
+		.cardh, .b, .i, .n, .g, .o {
+			font-size: 18px;
+		}
+		
+		

@@ -1,0 +1,112 @@
+table{
+       font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+       width: 80%;
+       margin-left: 10%
+    }
+
+         td,  th {
+          border: 2px solid #ccc;
+            padding: 8px;
+               font-size: 40px;
+    letter-spacing: 1px;
+    font-weight: bolder;
+    text-align: center;
+    
+        }
+
+        td{
+          text-align: center;
+        
+        }
+
+        .tablecontainer{
+          display: flex;
+
+        }
+
+        .b{
+          background: rgb(2,0,36);
+background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%);
+color: white;
+text-align: center;
+        }
+        .i{
+        background: rgb(2,0,36);
+      background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(121,9,13,1) 100%, rgba(0,212,255,1) 100%);
+      color: white;
+      text-align: center;
+        }
+        .o{
+         background: linear-gradient(178.6deg, rgb(20, 36, 50) 11.8%, rgb(124, 143, 161) 83.8%);
+         color: white; 
+         text-align: center;
+        }
+        .g{
+        background: rgb(36,26,0);
+        background: linear-gradient(90deg, rgba(36,26,0,1) 0%, rgba(91,60,6,1) 1%, rgba(232,148,22,1) 100%, rgba(0,212,255,1) 100%);
+        color: white;
+        text-align: center;
+        }
+        .cardh{
+             background: rgb(36,26,0);
+        background: linear-gradient(90deg, rgba(36,26,0,1) 0%, rgba(91,60,6,1) 1%, rgba(232,148,22,1) 100%, rgba(0,212,255,1) 100%);
+        color: white;
+        text-align: center;
+        }
+ .bingo{
+          background: blue;
+          color: white;
+           
+        }
+          /* Style for input fields */
+  input[type="text"] {
+    padding: 5px;
+    width: 100%; /* Adjust the width as needed */
+    box-sizing: border-box;
+  }
+    td input[type="text"] {
+    text-align: center;
+  }
+   #cardeditTable td,  th,tr{
+    border: 2px solid #ccc;
+    font-size: 16px;
+    letter-spacing: 1px;
+    font-weight: bolder;
+    text-align: center;
+    padding: 0px;
+    margin: 0px;
+ }
+   #cardeditTable input[type="text"] {
+    width: 80%; /* Adjust the width as needed */
+    box-sizing: border-box;
+    position: relative;
+   left: 0px;
+  }
+
+
+/* Define styles for matched cells */
+.matched {
+    background-color: red;
+    position: relative; /* Required for circle positioning */
+}
+.matched td {
+  color: white;
+}
+
+
+/* Define circle styling */
+.matched td::before {
+    content: ''; /* Create an empty content */
+    background-color: white;
+    border-radius: 50%;
+    border: 1px solid red;
+    position: absolute;
+    top: 50%; /* Position at the center of the cell */
+    left: 50%; /* Position at the center of the cell */
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+}
+
+.free{
+  font-size: 16px;
+}

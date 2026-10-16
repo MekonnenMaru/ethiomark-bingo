@@ -1,0 +1,510 @@
+/* Base Styles */
+    /* Main Content cover the whole page */
+    .main-content {
+        margin: 0px;
+        padding: 0;
+        width: 100%;
+    }
+
+    /* contains list of card number and selected numbers */
+    .content {
+        display: flex;
+        justify-content: space-between;
+        width: 97%;
+        margin-left: 60px;
+        gap: 10px;
+    }
+    /* width: 100%;
+    margin: 20px 0;
+    border-collapse: separate;
+    border-spacing: 10px; */
+
+    /* registered number displayiing box on the right  */
+    #tablereg {
+        border-collapse: separate;
+        table-layout: fixed;       /* Prevents uneven cell sizes */
+        width: max-content;        /* Makes table fit its content */
+        max-width: 100%;
+        margin: 0 auto;            /* Centers the table */
+        /* background-color: red; */
+    }
+    .custom-cell {
+        background: radial-gradient(circle, #000000, #5a6503);
+        border: 2px solid rgb(0, 0, 0);
+        color: rgb(255, 255, 255);
+        width: 60px; /* Equal width and height for a perfect circle */
+        height: 60px;
+        border-radius: 50%;
+        /* display: inline-block; */
+        vertical-align: middle; /* Ensures alignment with other inline elements */
+        text-align: center;
+        font-size: 40px;
+        font-weight: 600;
+        line-height: 60px; /* Matches height to center text vertically */
+        margin: 2px;
+        white-space: nowrap; 
+    }
+
+
+    /* unregisterd number and title .... plus on the left side */
+    .balls {
+        width: 60%;
+        position: relative; /* Needed for absolute positioning of children */
+    }
+
+    /* Game Round Title */
+    .game-round-title {
+        margin-top: 1px;
+        text-align: center;
+        color: white;
+        font-size: 38px;
+    }
+
+    .game-round-title span {
+        color:rgb(235, 217, 217);
+        font-size: 30px;
+    }
+
+    .help-btn {
+        margin-left: 20px;
+        font-size: 20px;
+        background: #077C6C;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 5px 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .help-btn:hover {
+        background: #066156;
+    }
+
+    /* Section Divider */
+    .section-divider {
+        border: 0;
+        height: 3px;
+        background-color: #077C6C;
+        margin: 5px 0;
+        width: 100%;
+        opacity: 0.9;
+        padding: 5px 0;
+    }
+
+    /* View Toggle */
+    .view-toggle {
+        display: flex;
+        justify-content: center;
+        margin: 15px 0;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .toggle-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+        background: #2c3e50;
+        color: white;
+    }
+
+    .toggle-btn.active {
+        background-color: #077C6C;
+        color: white;
+    }
+
+    .toggle-btn:hover {
+        background: #34495e;
+    }
+
+    .box-size-controls {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        margin-left: 20px;
+    }
+
+    .box-size-controls button {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        background: #225577;
+        color: white;
+    }
+
+    .box-size-controls button:hover {
+        background: #2980b9;
+    }
+
+    /* Number Boxes */
+    :root {
+        --box-size: 60px;
+    }
+
+    .box, .number-box {
+        width: var(--box-size);
+        height: var(--box-size);
+        padding: 2px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin: 5px;
+        font-size: calc(var(--box-size) * 0.6);
+    }
+    /* each circle card number for tabular */
+    .box {
+        background: radial-gradient(circle, #ffffff 0%, #f0f0f0 40%, #012e3a 80%, #0c578e 100%);
+        border: 1px solid #000000;
+        color: #000000;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    /* each circle card number for scrollable */
+    .number-box {
+        background: radial-gradient(circle, #ffffff 0%, #f0f0f0 40%, #012e3a 80%, #0c578e 100%);
+        color: #000000;
+        border: 1px solid #000000;
+        box-shadow: 0 2px 5px rgba(247, 246, 246, 0.2);
+    }
+
+    .box:hover, .number-box:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .snum, .selected {
+        background: radial-gradient(circle, #000000, #899b04) !important;
+        color: white !important;
+        opacity: 0.9;
+    }
+
+    /* Card number grid — paginated and scrollable share the same layout */
+    .container,
+    #circledNumbers,
+    #numbersGrid {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+        margin: 0 auto;
+        justify-content: center;
+    }
+
+    #paginatedView,
+    #scrollableView {
+        width: 100%;
+    }
+
+    .next {
+        display: flex;
+        flex-wrap: wrap;
+        width: 80%;
+        margin: 20px auto;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .next button,
+    #pageButtons button {
+        font-weight: 700;
+        font-size: 1rem;
+        min-height: 3rem;
+        min-width: 3rem;
+        padding: 0 12px;
+        margin: 0 4px;
+        border: 2px solid #0d9488;
+        background-color: #077C6C;
+        color: #ffffff;
+        cursor: pointer;
+        transition: background-color 0.2s, border-color 0.2s;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    #pageButtons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .next button:hover:not(:disabled),
+    #pageButtons button:hover:not(:disabled) {
+        background-color: #066156;
+        border-color: #ffffff;
+    }
+
+    .next button:disabled,
+    #pageButtons button:disabled {
+        background-color: #f59e0b;
+        color: #1a1a1a;
+        border-color: #d97706;
+        cursor: default;
+        opacity: 1;
+    }
+
+    .next button.active-page {
+        background-color: #f59e0b;
+        color: #1a1a1a;
+        border-color: #d97706;
+    }
+
+
+    /* Registration Card */
+    #regcard {
+        display: none;
+        width: 35%;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .selected-numbers-title {
+        letter-spacing: 2px;
+        color: white;
+        margin-top: 10px;
+        font-size: 38px;
+        text-align: center;
+    }
+
+    .form-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .form-control {
+        font-size: 24px;
+        font-weight: bold;
+        padding: 10px;
+        border-radius: 4px;
+        border: 1px solid #077C6C;
+        background: rgba(255,255,255,0.9);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .login-btn {
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+        border-radius: 4px;
+        font-size: 24px;
+        padding: 10px;
+        font-weight: bold;
+    }
+
+    .play-btn {
+        width: 70%;
+        background: #077C6C;
+        color: white;
+    }
+
+    .play-btn:hover {
+        background: #066156;
+    }
+
+    .clear-btn {
+        width: 30%;
+        background-color: #BB191A;
+        color: white;
+    }
+
+    .clear-btn:hover {
+        background-color: #9e1516;
+    }
+
+    /* Help Modal */
+    .help-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.6);
+        z-index: 9999;
+    }
+
+    .help-modal-content {
+        background: #275762;
+        color: white;
+        width: 90%;
+        max-width: 900px;
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 10px;
+        position: relative;
+    }
+
+    .close-modal {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        cursor: pointer;
+        font-size: 34px;
+    }
+
+    .help-modal h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .help-modal ul {
+        font-size: 20px;
+        line-height: 1.6;
+        padding-left: 20px;
+    }
+
+    .help-modal li {
+        margin-bottom: 10px;
+    }
+
+    /* Typing Helper */
+    .typing-helper {
+        position: fixed;
+        top: 20px;
+        left: 80px;
+        background: #222;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        font-size: 20px;
+        display: none;
+        z-index: 9999;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    #typingHelperNumber {
+        color: yellow;
+        font-size: 24px;
+    }
+
+    #typingHelperAction {
+        font-size: 18px;
+        margin-top: 5px;
+        color: gray;
+    }
+
+    /* Alerts */
+    .custom-alert {
+        display: block;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        padding: 15px 25px;
+        border-radius: 4px;
+        font-size: 16px;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+    }
+
+    .custom-alert-success {
+        background: #28a745;
+        color: white;
+    }
+
+    .custom-alert-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .slide-in {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .slide-out {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+
+    /* Responsive Design */
+    /* @media (max-width: 1200px) {
+        .content {
+            flex-direction: column;
+        }
+        
+        .balls, #regcard {
+            width: 100%;
+        }
+        
+        #regcard {
+            margin-top: 20px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .game-round-title {
+            font-size: 28px;
+        }
+        
+        .game-round-title span {
+            font-size: 20px;
+        }
+        
+        .help-btn {
+            font-size: 16px;
+        }
+        
+        .view-toggle {
+            flex-direction: column;
+        }
+        
+        .box-size-controls {
+            margin-left: 0;
+            margin-top: 10px;
+        }
+        
+        .resizable-container {
+            min-width: 100%;
+        }
+        
+        :root {
+            --box-size: 50px;
+        }
+        
+        .form-control {
+            font-size: 18px;
+        }
+        
+        .login-btn {
+            font-size: 18px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        :root {
+            --box-size: 40px;
+        }
+        
+        .next button {
+            width: 4rem;
+            font-size: 14px;
+        }
+        
+        .selected-numbers-title {
+            font-size: 24px;
+        }
+        
+        .custom-cell {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            line-height: 40px;
+        }
+    } */

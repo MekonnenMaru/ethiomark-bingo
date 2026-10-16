@@ -1,0 +1,486 @@
+
+/* Settings Menu Container */
+.settings-menu {
+    position: fixed;
+    top: -100%; /* Start from outside the viewport */
+    right: 70px; /* Initially hidden */
+    /* width: 300px; */
+    height: 90%;
+    background: linear-gradient(135deg, #1f413e, #f0f0f0); /* Gradient background */
+    box-shadow: -2px 0 15px rgba(0, 0, 0, 0.3); /* Stronger shadow */
+    padding: 20px;
+    z-index: 2000;
+    color: #333; /* Darker text for better contrast */
+    border-radius: 15px 0 0 15px; /* Rounded corners on the left */
+    border: 1px solid #ddd; /* Light border */
+    transform: translate(10px, -50%);
+    transition: transform 0.5s ease-in-out, top 0.5s ease-in-out;
+}
+
+/* Active state (open menu) */
+.settings-menu.active {
+    top: 50%; /* Move towards the center from the top */
+    right: 70px; /* 10px away from the right edge */
+    transform: translate(0, -50%); /* Smooth entrance */
+}
+
+/* Settings Header */
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 4px solid #56e477; /* Green border */
+}
+
+.settings-header h2 {
+    margin: 0;
+    font-size: 25px;
+    color: #5eef80; /* Green text */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #28a745; /* Green color */
+    font-size: 24px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close-btn:hover {
+    color: #1e7e34; /* Darker green on hover */
+}
+
+/* Settings Options */
+.settings-option {
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px;
+    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.settings-option:hover {
+    transform: translateY(-2px); /* Slight lift on hover */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
+}
+
+.settings-option label {
+    font-size: 16px;
+    color: #555; /* Dark gray text */
+    font-weight: bold;
+}
+
+.settings-option select,
+.settings-option input {
+    padding: 5px 10px;
+    font-size: 16px;
+    border: 1px solid #ddd; /* Light border */
+    border-radius: 5px; /* Rounded corners */
+    background-color: #f9f9f9; /* Light background */
+    color: #000000; /* Dark text */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.settings-option select:focus,
+.settings-option input:focus {
+    border-color: #28a745; /* Green border on focus */
+    box-shadow: 0px 0px 5px rgba(40, 167, 69, 0.5); /* Green glow on focus */
+    outline: none; /* Remove default outline */
+}
+
+
+
+
+.tooltip {
+    visibility: hidden;
+    background-color: #000000; /* Red background for danger message */
+    color: white;
+    text-align: center;
+    border-radius: 4px;
+    padding: 10px;
+    position: absolute;
+    z-index: 1;
+    right: 115%; /* Position to the left of the button */
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s;
+    border: 2px solid rgb(255, 0, 0);
+    font-size: 18px;
+}
+
+.tooltip::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    margin-top: -5px;
+    border-width: 15px;
+    border-style: solid;
+    border-color: transparent transparent transparent #ff4444;
+}
+
+
+
+
+
+
+/* Bonus Button Styling */
+#bonus {
+    background-color: #FFD700; /* Gold color */
+    border: none;
+    border-radius: 25px;
+    padding: 15px 30px;
+    font-size: 30px;
+    font-weight: bold;
+    color: #000;
+    cursor: pointer;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+#bonus span {
+    position: relative;
+    z-index: 2;
+}
+
+
+
+#bonus:hover {
+    box-shadow: 0px 6px 8px rgba(255, 2, 2, 0.3);
+    transform: translateY(5px);
+}
+
+#bonus:active {
+    transform: translateY(0);
+}
+
+/* Bonus Container Styling */
+#bonusContainer {
+    display: none; /* Hidden by default */
+    position: fixed; /* Fixed position for dragging */
+    background: linear-gradient(135deg, #1d413f, #1a2929);
+    border-radius: 15px;
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    color: #ffffff;
+    border: 2px solid #618d9b;
+    z-index: 1000; /* Ensure it's above other elements */
+    animation: slideDown 0.5s ease-in-out; /* Slide-down animation */
+    max-width: 500px; /* Set a fixed width for the container */
+    cursor: grab; /* Indicate draggable area */
+}
+
+#bonusContainer:active {
+    cursor: grabbing; /* Change cursor when dragging */
+}
+
+#bonusContent {
+    padding: 20px;
+}
+
+#bonusContent h1 {
+    font-size: 36px;
+    margin-bottom: 0px;
+    margin-top: -20px;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+    font-weight: 800;
+}
+
+#bonusContent h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+    text-align: left;
+}
+
+#bonusContent p {
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+#bonusContent ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+/* Special Bonus Section Styling */
+.special-bonus {
+    font-size: 18px;
+    font-weight: bold;
+    color: #fdfdfd;
+    text-align: center;
+    display: inline-block;
+    background-color: #000000; /* Green color */
+    border: 1px solid white;
+    border-radius: 10px;
+    margin: -10px;
+}
+
+/* Bingo Word Buttons Styling */
+.bingo-word {
+    background-color: #000000; /* Green color */
+    border: none;
+    border-radius: 10px;
+    font-size: 26px;
+    font-weight: bolder;
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    margin: 0 5px;
+}
+
+.bingo-word-text {
+    line-height: 1.5; /* Adjust this based on how much spacing you need */
+    height: auto; /* Allow height to adjust dynamically */
+    min-height: 20px; /* Set a minimum height */
+    display: inline-block; /* Ensures the element respects the height */
+}
+
+.bingo-word:hover {
+    background-color: #45a049;
+    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.bingo-word:active {
+    transform: translateY(0);
+}
+
+/* Highlight Text Styling */
+.highlight {
+    color: #FFD700; /* Gold color */
+    font-size: 30px;
+    font-weight: 800;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+#close-bonus {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 900;
+    background-color: rgba(255, 0, 0, 0.322);
+    border-radius: 50%;
+}
+
+#close-bonus:hover {
+    color: #FFD700; /* Gold color on hover */
+}
+
+
+
+
+
+
+/* .claim-bonus-popup {
+    position: relative;
+    padding: 20px 40px;
+    background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    cursor: pointer;
+    overflow: hidden;
+    display: none;
+} */
+
+.claim-bonus-popup {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(45deg, #ffcc00, #ff6600);
+    padding: 15px 30px;
+    border-radius: 50px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0px 0px 15px rgba(255, 165, 0, 0.7);
+    position: relative;
+    display: none;
+    animation: rotateGlow 2s linear infinite;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover effect */
+.claim-bonus-popup:hover {
+    transform: scale(1.1);
+    box-shadow: 0px 0px 25px rgba(255, 165, 0, 1);
+}
+
+
+/* Rotation + Glow Animation */
+@keyframes rotateGlow {
+    0% { transform: rotate(0deg) scale(1); box-shadow: 0px 0px 15px rgba(255, 165, 0, 0.7); }
+    50% { transform: rotate(5deg) scale(1.05); box-shadow: 0px 0px 25px rgba(255, 165, 0, 1); }
+    100% { transform: rotate(0deg) scale(1); box-shadow: 0px 0px 15px rgba(255, 165, 0, 0.7); }
+}
+
+/* Slide-down Animation */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+
+
+
+
+/* Bonus Settings Specific Styles */
+.bonus-submenu {
+    padding-left: 20px;
+    border-left: 3px solid #28a745;
+    margin-top: 10px;
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .bonus-input {
+    padding: 5px 10px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    color: #333;
+    transition: all 0.3s ease;
+  }
+  
+  .bonus-input:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+    outline: none;
+  }
+  
+  input[type="number"].bonus-input {
+    width: 80px;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+
+/* Sound Toggle Specific Styles */
+.sound-settings-toggles {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: 10px 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid #091318;
+    margin: 12px 0;
+  }
+  
+  .sound-settings-toggle-row {
+    margin-top: 10px;
+    padding: 0px;
+    display: flex;
+    gap: 28px;
+    align-items: center;
+  }
+  
+  .sound-settings-toggle-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .sound-settings-toggle-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2a3446;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  
+  .sound-settings-switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+  }
+  
+  .sound-settings-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .sound-settings-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e4e9f1;
+    transition: .2s ease;
+    border-radius: 34px;
+    border: 1px solid #1c3a46;
+  }
+  
+  .sound-settings-slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .2s ease;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .sound-settings-switch input:checked + .sound-settings-slider {
+    background-color: #28a745;
+    border-color: #23923d;
+  }
+  
+  .sound-settings-switch input:checked + .sound-settings-slider:before {
+    transform: translateX(24px);
+  }
+  
+  .sound-settings-switch input:focus-visible + .sound-settings-slider {
+    outline: 2px solid #28a745;
+    outline-offset: 2px;
+  }
+  
+  .sound-settings-switch input:disabled + .sound-settings-slider {
+    background-color: #29535e;
+    cursor: not-allowed;
+  }
+  
+  .sound-settings-state {
+    font-size: 12px;
+    font-weight: 600;
+    color: #2e394f;
+    margin-left: 6px;
+  }
+  
+  .sound-settings-switch input:checked ~ .sound-settings-state {
+    color: #28a745;
+  }

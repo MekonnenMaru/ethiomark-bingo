@@ -1,0 +1,237 @@
+body {
+    /* background: linear-gradient(135deg, #5fb1a6, #426f8d, #70cafd); */
+    background-size: 400% 400%;
+    /* animation: gradient-animation 15s ease infinite; */
+    margin: 0;
+    display: flex;
+    justify-content: flex-start;
+    height: 100vh; /* Center content vertically */
+    position: relative; /* For overlay positioning */
+    overflow: hidden; /* Prevent overflow */
+    color: #ffffff;
+}
+
+/* body::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgb(109, 121, 109), #5d632d);
+
+    mix-blend-mode: overlay; 
+    pointer-events: none;
+} */
+
+/* @keyframes gradient-animation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+ */
+
+
+
+
+
+
+
+.numcolumn {
+    display: flex;
+    flex-direction: row;
+}
+
+.numrow {
+    display: flex;
+    justify-content: space-around;
+}
+
+.balls-line hr {
+    width: 60%;
+    background: #bc4307;
+}
+
+.numbox {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(255, 238, 2) 0%, rgba(0, 212, 255, 1) 0%, rgba(9, 9, 121, 1) 0%, rgba(6, 49, 113, 1) 8%, rgba(9, 82, 190, 1) 47%, rgba(6, 44, 102, 1) 77%, rgba(3, 14, 34, 1) 100%, rgba(9, 131, 236, 1) 100%);
+    box-shadow: 0px 5px 6px rgba(50, 50, 50, 0.55);
+    color: #000000;
+    text-align: center;
+    font-size: 3.2rem;
+    margin: 2px;
+    opacity: 0.8;
+    border: 2px solid #ffd700;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.numbox:hover {
+    background: radial-gradient(circle, rgba(255, 170, 0, 1) 0%, rgba(60, 155, 255, 1) 40%, rgb(2, 50, 60) 80%, rgba(15, 100, 160, 1) 100%);
+    color: white;
+}
+
+.content {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.balls {
+    width: 65%;
+    position: relative; /* Needed for absolute positioning of children */
+}
+
+.balls #prepare-sleep {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.balls .prepare-sleep h3 {
+    background: #09b517;
+    text-transform: uppercase;
+    padding: 4px;
+    width: 180px;
+    text-align: center;
+    color: white;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+#regcard {
+    display: none;
+    width: 35%;
+    height: 100vh;
+}
+
+/* each selected right side number box */
+.custom-cell {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #000000, #899b04);
+    color: white;
+    text-align: center;
+    font-size: 60px;
+    padding: 5px;
+    margin: 2px;
+    border: 2px solid #948d8d;
+}
+
+
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.next {
+    display: flex;
+    flex-wrap: wrap;
+    width: 80%;
+    margin: 0 auto;
+    justify-content: center;
+}
+
+/* each unselected number box */
+.box {
+    width: 4.2rem;
+    height: 4.2rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(255, 255, 255) 0%, rgba(53, 135, 255, 1) 40%, rgb(1, 38, 46) 80%, rgba(12, 87, 142, 1) 100%);
+    color: #000000;
+    text-align: center;
+    font-size: 3rem;
+    margin: 0.1rem;
+    padding-top: 1rem;
+    border: 2px solid #ffffff;
+    cursor: pointer;
+}
+.box:hover {
+    width: 4.2rem;
+    height: 4.2rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(155, 155, 23) 0%, rgb(40, 53, 72) 40%, rgb(1, 38, 46) 80%, rgba(12, 87, 142, 1) 100%);
+    color: #ffffff;
+    text-align: center;
+    font-size: 3rem;
+    margin: 0.1rem;
+    padding-top: 1rem;
+    border: 2px solid #ffffff;
+    cursor: pointer;
+}
+
+
+.snum {
+    background: radial-gradient(circle, #000000, #899b04);
+    color: rgb(237, 234, 234);
+}
+
+.next button {
+    font-weight: 900;
+    height: 4.5rem;
+    width: 4.5rem;
+    margin: 0 4px;
+    border: 2px solid #ffffff;
+    background-color: #0e8cc7;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.next button:hover {
+    background-color: #162536;
+}
+
+/* Media query for mobile devices */
+@media only screen and (max-width: 600px) {
+    .next button:nth-of-type(1),
+    .next button:nth-last-child(1) {
+        display: block;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    
+    .next button:nth-of-type(1) {
+        left: 1%;
+        transform: translateX(-50%);
+    }
+    
+    .next button:nth-last-child(1) {
+        right: 1%;
+        transform: translateX(50%);
+    }
+
+    .next button:not(:first-child):not(:last-child) {
+        display: none;
+    }
+
+    .content {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .balls,
+    #regcard {
+        width: 100%;
+    }
+
+    .numbox {
+        width: 5rem;
+        height: 5rem;
+        font-size: 4rem;
+    }
+}

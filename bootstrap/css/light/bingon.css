@@ -1,0 +1,385 @@
+h1 {
+  margin: 0;
+}
+
+.goodbingo {
+  height: 40px;
+  width: 24.5%;
+  color: white;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-left: 0.5%;
+}
+
+
+
+.brow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.irow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-around;
+  width: 100%;
+}
+
+/* pattern display */
+
+.box1 {
+  width: 100%;
+  position: relative;
+  display: none;
+}
+
+
+.btnbingo {
+  height: 60px;
+  width: 30%;
+  background: linear-gradient(0deg, rgba(255, 255, 0, 1) 0%, rgb(206, 166, 6) 50%, rgb(153, 153, 20) 100%);
+  color: rgb(0, 0, 0);
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 25px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-left: 1%;
+  margin-top: 10px;
+}
+
+.btnshuffle {
+  height: 60px;
+  width: 30%;
+  background: linear-gradient(0deg, rgb(0, 0, 0) 0%, rgb(248, 250, 250) 0%, rgb(117, 117, 255) 0%, rgb(0, 0, 0) 8%, rgb(255, 255, 255) 47%, rgb(255, 255, 255) 77%, rgb(1, 25, 33) 100%);
+  color: #000000;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 30px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-left: 1%;
+  margin-top: 10px;
+}
+
+
+.check_card
+{
+    display: flex;  
+    left: 10%;
+    height: 60px;
+    width: 20%;
+    color: #000;
+    font-family: "Helvetica Neue", Helvetica, sans-serif;
+    font-size: 30px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-left: 1%;
+    margin-top: 10px;
+}
+
+.card-input {
+  width: 100%; /* Full width of the container */
+  height: 55px; /* Adjust as needed */
+  padding: 0px; /* Add some padding for better appearance */
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 30px; /* Adjust font size as needed */
+  font-weight: 900;
+  border: 1px solid #ccc; /* Border style */
+  border-radius: 4px; /* Rounded corners */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Optional shadow */
+  text-align: center;
+}
+
+.sound-input-text {
+  height: 60px;
+  width: 20%;
+  color: #000;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 30px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-left: 1%;
+  margin-top: 10px;
+}
+
+.voiceselect {
+  height: 60px;
+  width: 80%;
+  font-size: 30px;
+}
+
+
+.slidecontainer {
+  width: 100%;
+  color: rgb(0, 0, 0);
+
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 80%;
+  height: 30px;
+  background: #000000;
+  color: rgb(0, 78, 31);
+  outline: none;
+  opacity: 0.4;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider:hover {
+  opacity: 0.5;
+  color: wheat;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 45px;
+  background: #00ff40;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 45px;
+  background: #00ffa2;
+  cursor: pointer;
+}
+
+.setting_box{
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  width: 80%; 
+  margin: 20px auto;
+}
+
+/* this is drawen bingo part */
+.txtbox {
+  width: 4.8rem;
+  height: 4.8rem;
+  background-color: #4169E1; /* Royal Blue */
+  color: #ffffff; /* White text for contrast */
+  text-align: center;
+  font-weight: bold;
+  font-size: 3rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;  /* Optional: Adds rounded corners */
+}
+
+.numrow {
+  display: flex;
+  justify-content: space-around;
+}
+
+.callb {
+  display: flex;
+  justify-content: space-between;
+}
+
+
+
+
+
+
+
+
+/* numbers from 1 - 75 */
+.numbox {
+  width: 4.5rem;
+  height: 4.5rem;
+  background-color: #106b39; /* Medium Sea Green */
+  color: #ffffff;  /* White text for good contrast */
+  opacity: 0.9; /* Slightly more visible */
+  text-align: center;
+  font-weight: bold;
+  font-size: 3rem;
+  margin: 0;
+  margin-left: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 8px;  /* Optional: Adds rounded corners for a smooth look */
+}
+
+
+
+/* drawwing num */
+.callnum {
+  text-align: center;
+  animation: effect;
+  animation-duration: 2s;
+  background:  #FFD700; /* Added bright yellow (gold) */
+  color: rgb(0, 0, 0);
+  z-index: 100;
+}
+@keyframes effect {
+  50% {
+      background: linear-gradient(90deg, rgba(255, 0, 0, 1) 0%, rgba(255, 212, 0, 1) 0%, rgba(255, 9, 121, 1) 0%, rgba(255, 49, 6, 1) 8%, rgba(255, 82, 9, 1) 47%, rgba(255, 44, 6, 1) 77%, rgba(255, 14, 3, 1) 100%, rgba(255, 131, 9, 1) 100%);
+      color: #fff;
+      transform: scale(1.5, 1.5);
+  }
+
+  25% {
+      background: linear-gradient(90deg, rgba(255, 0, 0, 1) 0%, rgba(255, 212, 0, 1) 0%, rgba(255, 9, 121, 1) 0%, rgba(255, 49, 6, 1) 8%, rgba(255, 82, 9, 1) 47%, rgba(255, 44, 6, 1) 77%, rgba(255, 14, 3, 1) 100%, rgba(255, 131, 9, 1) 100%);
+      color: #fff;
+      transform: scale(1.3, 1.3);
+      z-index: 400; /* High z-index during animation */
+  }
+
+  0% {
+      background: linear-gradient(90deg, rgba(255, 0, 0, 1) 0%, rgba(255, 212, 0, 1) 0%, rgba(255, 9, 121, 1) 0%, rgba(255, 49, 6, 1) 8%, rgba(255, 82, 9, 1) 47%, rgba(255, 44, 6, 1) 77%, rgba(255, 14, 3, 1) 100%, rgba(255, 131, 9, 1) 100%);
+      color: #fff;
+      transform: scale(1, 1);
+  }
+}
+
+/*  shuffleshuffleshuffleshuffle*/
+.callnum1 {
+  animation: effect1 1s infinite, shuffleColors 2s infinite; /* Add shuffle animation */
+  color: rgba(255, 255, 255, 1);
+  opacity: 1;
+  z-index: 100;
+  background-color: rgb(2, 36, 36);
+  border: 1px solid white;
+}
+
+@keyframes shuffleColors {
+  0% { background-color: #ff2f00; } /* Red */
+  25% { background-color: #33FF57; } /* Green */
+  50% { background-color: #3357FF; } /* Blue */
+  75% { background-color: #FF33A1; } /* Pink */
+  100% { background-color: #d53e1c; } /* Back to Red */
+}
+
+@keyframes effect1 {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+
+
+
+@media (max-width: 900px) 
+{
+  
+      .brow {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-around;
+        width: 100%;
+        height: 1.5rem;
+        margin: 1px;
+      }
+
+      .irow {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-around;
+        width: 100%;
+        margin: 1px;
+      }
+      
+      .txtbox {
+        text-align: center;
+        font-weight: bold;
+        font-size: 3rem; /* Fixed font size */
+        margin: 0;
+        margin-left: 0.5rem;
+        display: flex; /* For centering */
+        align-items: center; /* For centering */
+        justify-content: center; /* For centering */
+
+
+        width: 1.5rem;
+        height: 1.5rem;
+        font-size: 0.5rem;
+        margin: 1px;
+        
+      }
+
+      .numbox {
+        width: 1.5rem;
+        height: 1.5rem;
+        font-size: 0.5rem;
+        margin: 1px;
+      }
+
+      .callnum {
+        font-size: 0.5rem;
+      }
+
+      .btnbingo {
+        height: 30px;
+        width: 20%;
+        font-size: 15px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        margin-left: 1%;
+        margin-top: 5px;
+      }
+      
+      .btnshuffle {
+        height: 30px;
+        width: 20%;
+        font-size: 15px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        margin-left: 1%;
+        margin-top: 5px;
+      }
+      .check_card
+      {
+        left: 1%;
+        height: 30px;
+        width: 30%;
+        color: #000;
+        font-family: "Helvetica Neue", Helvetica, sans-serif;
+        font-size: 20px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        margin-left: 1%;
+        margin-top: 10px;
+      }
+
+      .card-input {
+        width: 100%; /* Full width of the container */
+        height: auto; /* Adjust as needed */
+        padding: 0px; /* Add some padding for better appearance */
+        font-size: 12px; /* Adjust font size as needed */
+        font-weight: 900;
+        border: 1px solid #ccc; /* Border style */
+        border-radius: 4px; /* Rounded corners */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Optional shadow */
+        text-align: center;
+      }
+      .sound-input-text {
+        height: auto;
+        width: 20%;
+        color: #000;
+        font-family: "Helvetica Neue", Helvetica, sans-serif;
+        font-size: 12px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        margin-left: 1%;
+        margin-top: 10px;
+      }
+
+      .voiceselect {
+        height: auto;
+        width: 90%;
+        font-size: 12px;
+        padding: 10px;
+      }
+      
+}
