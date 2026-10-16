@@ -5,6 +5,10 @@
  * Serves static assets directly so PHP does not handle every .wav/.css request.
  */
 
+require_once __DIR__ . '/config/Youman.php';
+require_once __DIR__ . '/config/WebCopyGuard.php';
+web_copy_guard();
+
 $uri = urldecode(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
 $path = __DIR__ . $uri;
 

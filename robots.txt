@@ -1,0 +1,15 @@
+User-agent: HTTrack
+Disallow: /
+
+User-agent: WebCopier
+Disallow: /
+
+User-agent: Teleport
+Disallow: /
+
+User-agent: SiteSucker
+Disallow: /
+
+User-agent: *
+Disallow: /config/
+Disallow: /admin/

@@ -7,6 +7,7 @@
 			header("Location: ../config/logout.php");
 		}
 				include_once '../config/Database.php';
+				require_once '../config/Youman.php';
 				require_once '../config/CartelaResolver.php';
 				require_once '../config/BingoPatterns.php';
 				require_once '../config/BingoChecker.php';

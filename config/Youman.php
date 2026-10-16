@@ -3,6 +3,9 @@
 /** @var string 'OFFLINE' = BIOS-bound encryption (default). 'ONLINE' = plain cashier_package, no machine check at login. */
 define('APP_USAGE', 'OFFLINE');
 
+/** When APP_USAGE is ONLINE, block common site copiers (see WebCopyGuard.php). Set false to disable. */
+define('WEB_COPY_GUARD_ENABLED', true);
+
 function app_usage_is_online(): bool
 {
     return defined('APP_USAGE') && strtoupper((string) APP_USAGE) === 'ONLINE';
@@ -67,3 +70,6 @@ function encrypt_cashier_package($plain): string
         openssl_encrypt((string) $plain, 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV)
     );
 }
+
+require_once __DIR__ . '/WebCopyGuard.php';
+web_copy_guard();

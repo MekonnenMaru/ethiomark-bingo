@@ -12,7 +12,7 @@
     include_once '../config/Database.php';
     //####################################### SET BONUS  #####################################################################
     include_once '../cashier/create_bonus.php';
-	require '../config/Youman.php';
+	require_once '../config/Youman.php';
 
 	
 
@@ -302,6 +302,7 @@
 <head>
     <meta charset="UTF-8">
 	<meta name="viewport" content="width=1280, initial-scale=0.1, minimum-scale=0.1, maximum-scale=5.0, user-scalable=yes">
+	<meta name="robots" content="noindex, noarchive, nosnippet">
     <title>Ethiomark Bingo</title>
 
 

@@ -8,6 +8,8 @@ if (!isset($_SESSION['loggedin']) || ($_SESSION['role'] ?? '') !== 'admin') {
     exit;
 }
 
+require_once __DIR__ . '/../config/Youman.php';
+
 require_once __DIR__ . '/../config/AdminSqlCrypto.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
