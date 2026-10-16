@@ -56,7 +56,7 @@ if (isset($_POST['start_date'], $_POST['end_date']))
             $response = ['status' => 'success', 'data' => []];
 
             while ($row = $result->fetch_assoc()) {
-                $row['cashier_package'] = openssl_decrypt( base64_decode($row['cashier_package']), 'AES-256-CBC', ENCRYPTION_KEY, 0,ENCRYPTION_IV);
+                $row['cashier_package'] = decrypt_cashier_package($row['cashier_package']);
                 $response['data'][] = $row;
             }
         } else 
@@ -105,7 +105,7 @@ else
             $response = ['status' => 'success', 'data' => []];
 
             while ($row = $result->fetch_assoc()) {
-                $row['cashier_package'] = openssl_decrypt( base64_decode($row['cashier_package']), 'AES-256-CBC', ENCRYPTION_KEY, 0,ENCRYPTION_IV);
+                $row['cashier_package'] = decrypt_cashier_package($row['cashier_package']);
                 $response['data'][] = $row;
             }
         } else 
@@ -329,6 +329,7 @@ else
 <body>
     <div id="customAlert" class="custom-alert" style="display: block; position: fixed; top: 20px; right: 20px; z-index: 10000;"></div>
 
+	<?php if (! app_usage_is_online()): ?>
 	<div id="packageModalOverlay" class="package-modal-overlay">
 		<div class="package-modal" role="dialog" aria-modal="true">
 			<div class="package-modal-header">
@@ -359,6 +360,7 @@ else
 			</div>
 		</div>
 	</div>
+	<?php endif; ?>
 
     <div id="user-content" style="display: none;">
           
@@ -423,10 +425,12 @@ else
 
 				
                 <div class="cashier_option_info">
+					<?php if (! app_usage_is_online()): ?>
 					<div class="cashier-name-row">
 						<p><strong>Cashier Name:</strong> <span id="cashier_option_cashier_name" class="cashier_option_name"></span></p>
 						<button type="button" id="btnSyncPackage" class="package-sync-btn package-sync-btn-attention" title="Fetch and apply package deposit from admin">Package (ፓኬጅ ለመሙላት)</button>
 					</div>
+					<?php endif; ?>
 					
 					<form id="report_form" method="POST" action="report.php" class="cashier_option_report_form" style="display: flex; align-items: center; gap: 10px;">
 						<div class="mini-box">
@@ -777,7 +781,10 @@ else
 									// Set the cashier profile name from the fetched data
 									document.getElementById("cashier_profile_name").innerHTML = cashier.cashier_id;
 									document.getElementById("report_cashiernames").value = cashier.cashier_id;
-									document.getElementById("cashier_option_cashier_name").innerHTML = resp[0].cashier_id;
+									const cashierOptionName = document.getElementById("cashier_option_cashier_name");
+									if (cashierOptionName) {
+										cashierOptionName.innerHTML = resp[0].cashier_id;
+									}
 									let formattedNumber = new Intl.NumberFormat('en-US').format(cashier.cashier_package);
 									document.getElementById("remaining_balance").innerHTML = formattedNumber;
 								} else {

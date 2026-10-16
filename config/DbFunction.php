@@ -65,31 +65,32 @@ if (isset($_POST['login_form_submitted']) && isset($_POST['cashier_id']) && isse
     $login_response = [];
 
 
-    $xy = shell_exec('wmic bios get serialnumber 2>&1');
-        $xy = trim($xy);
-        $parts = preg_split('/\s+/', $xy);
-        if (count($parts) > 1) {
-            $sr = $parts[1];
-        } else {
-            $sr = '';
+    $machine_ok = true;
+        if (! app_usage_is_online()) {
+            $xy = shell_exec('wmic bios get serialnumber 2>&1');
+            $xy = trim($xy);
+            $parts = preg_split('/\s+/', $xy);
+            if (count($parts) > 1) {
+                $sr = $parts[1];
+            } else {
+                $sr = '';
+            }
+
+            $sr = base64_encode(openssl_encrypt($sr, 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV));
+
+            $query19 = 'SELECT mid FROM cashier WHERE mid = ?';
+            $stmt19  = $conn->prepare($query19);
+            $stmt19->bind_param('s', $sr);
+            $stmt19->execute();
+            $result19 = $stmt19->get_result();
+
+            if ($result19->num_rows === 0) {
+                $machine_ok                     = false;
+                $login_response['login_status'] = 'Fuck ....  ';
+            }
         }
 
-        // before comparing the fetched seriial number with the datas from database we must encrypt 
-        $sr = base64_encode(openssl_encrypt($sr, 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV));
-        // $cashier_package = openssl_decrypt(base64_decode($cashier_package), 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV);
-        
-        // Check if the serial number exists in the database (machine_id in settings table)
-        $query19 = "SELECT mid FROM cashier WHERE mid = ?";
-        $stmt19 = $conn->prepare($query19);
-        $stmt19->bind_param('s', $sr);
-        $stmt19->execute();
-        $result19 = $stmt19->get_result();
-
-        if ($result19->num_rows === 0) {
-            $login_response['login_status'] = "Fuck ....  " ;
-        }
-        else
-        {
+        if ($machine_ok) {
 
             $updatingwith_remote_result = [
                 "status"  => "false",
@@ -340,7 +341,7 @@ if (isset($_POST['get_cashier_data'])) {
         if ($result->num_rows > 0) {
             // Fetch associative array for each row
             while ($row = $result->fetch_assoc()) {
-                $row['cashier_package'] = openssl_decrypt( base64_decode($row['cashier_package']), 'AES-256-CBC', ENCRYPTION_KEY, 0,ENCRYPTION_IV);
+                $row['cashier_package'] = decrypt_cashier_package($row['cashier_package']);
                 $response[] = $row;
             }
             // while ($row = $result->fetch_assoc()) {
@@ -461,7 +462,7 @@ if (isset($_POST['register_new_game_round']) && isset($_POST['selectedcard']) &&
         {
             $cashier_package = $cashier['cashier_package'];
             // $newCashierPackage = base64_encode(openssl_encrypt(10000, 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV));
-            $cashier_package = openssl_decrypt(base64_decode($cashier_package), 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV);
+            $cashier_package = decrypt_cashier_package($cashier_package);
 
             // Split the selected cards string into an array and count the number of cards
             $selectedCardsArray = explode(',', $selectedcard);
@@ -1590,11 +1591,11 @@ if (isset($_POST['round_number']) && isset($_POST['santim']) && isset($_POST['se
             $cashier               = mysqli_fetch_assoc($cashierResult);
             $currentCashierPackage = $cashier['cashier_package'];
             // $newCashierPackage = base64_encode(openssl_encrypt(10000, 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV));
-            $currentCashierPackage = openssl_decrypt(base64_decode($currentCashierPackage), 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV);
+            $currentCashierPackage = decrypt_cashier_package($currentCashierPackage);
 
             // Step 2: Calculate the new cashier package
             $newCashierPackage = $currentCashierPackage - ($income - $bonus_amount);
-            $newCashierPackage = base64_encode(openssl_encrypt($newCashierPackage, 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV));
+            $newCashierPackage = encrypt_cashier_package($newCashierPackage);
 
             
             // Step 3: Update the cashier's package in the database
@@ -2445,11 +2446,11 @@ if (isset($_POST['claim_new_bonus_round']) && isset($_POST['cashier_id'])) {
                                 $partner_id         = $data['partner_id'];
                                 $partner_full_name  = $data['partner_full_name'];
                                 $cashier_package    = $data["cashier_package"];
-                                $cashier_package = openssl_decrypt(base64_decode($cashier_package), 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV);
+                                $cashier_package = decrypt_cashier_package($cashier_package);
                                 
                                 // Update cashier package
                                 $newCashierPackage  = $cashier_package + ($new_bonus_amount * 0.10);
-                                $newCashierPackage = base64_encode(openssl_encrypt($newCashierPackage, 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV));
+                                $newCashierPackage = encrypt_cashier_package($newCashierPackage);
 
                                 $updateCashier = "UPDATE cashier SET cashier_package = '$newCashierPackage' WHERE cashier_id = '$cashier_id'";
                                 if (!mysqli_query($conn, $updateCashier)) {

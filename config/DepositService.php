@@ -98,28 +98,12 @@ function read_cashier_package_balance($conn, string $cashierId): float
         return 0.0;
     }
 
-    $value = openssl_decrypt(
-        base64_decode($encrypted),
-        'AES-256-CBC',
-        ENCRYPTION_KEY,
-        0,
-        ENCRYPTION_IV
-    );
-
-    return is_numeric($value) ? (float) $value : 0.0;
+    return (float) decrypt_cashier_package($encrypted);
 }
 
 function write_cashier_package_balance($conn, string $cashierId, float $balance): bool
 {
-    $encrypted = base64_encode(
-        openssl_encrypt(
-            (string) $balance,
-            'AES-256-CBC',
-            ENCRYPTION_KEY,
-            0,
-            ENCRYPTION_IV
-        )
-    );
+    $encrypted = encrypt_cashier_package($balance);
 
     $stmt = $conn->prepare('UPDATE cashier SET cashier_package = ? WHERE cashier_id = ?');
     $stmt->bind_param('ss', $encrypted, $cashierId);

@@ -21,6 +21,138 @@
     $db   = Database::getInstance();
     $conn = $db->getConnection(); // Get the connection object
 
+    /**
+     * Full-screen account block overlays (blocked partner, locked cashier, low balance).
+     */
+    function renderCashierBlockOverlay(string $type, array $data = []): void
+    {
+        $phone = '0918101037';
+        $phoneEsc = htmlspecialchars($phone, ENT_QUOTES, 'UTF-8');
+
+        $accent = '#f59e0b';
+        $icon = '💳';
+        $title = 'Insufficient Balance';
+        $subtitle = 'Please recharge your balance to continue.';
+        $footerActions = '';
+
+        if ($type === 'blocked') {
+            $accent = '#ef4444';
+            $icon = '🚫';
+            $title = 'Blocked Partner Account';
+            $subtitle = 'Please contact your admin to continue.';
+        } elseif ($type === 'locked') {
+            $accent = '#f87171';
+            $icon = '🔒';
+            $title = 'Sorry, your account is locked out!';
+            $subtitle = 'Please contact support for assistance.';
+            $footerActions = '
+                <a href="../config/logout.php" class="cashier-block-btn cashier-block-btn-secondary">Logout</a>';
+        } elseif ($type === 'low_balance') {
+            $cashierId = htmlspecialchars((string) ($data['cashier_id'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $balance = htmlspecialchars((string) ($data['balance'] ?? '0'), ENT_QUOTES, 'UTF-8');
+            $footerActions = '
+                <a href="../cashier/report.php" class="cashier-block-btn cashier-block-btn-primary">Go to Report</a>';
+            $balanceChip = '
+                <div class="cashier-block-balance">' . $cashierId . ' = ' . $balance . ' ብር</div>';
+        } else {
+            return;
+        }
+
+        if ($type !== 'low_balance') {
+            $balanceChip = '';
+        }
+
+        echo '
+        <div id="overlay" class="cashier-block-overlay" role="alertdialog" aria-modal="true" aria-labelledby="cashier-block-title">
+            <div class="cashier-block-card" style="--block-accent:' . $accent . ';">
+                <div class="cashier-block-header">
+                    <div class="cashier-block-icon" aria-hidden="true">' . $icon . '</div>
+                    <h2 id="cashier-block-title" class="cashier-block-title">' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '</h2>
+                </div>
+                <div class="cashier-block-body">
+                    ' . $balanceChip . '
+                    <p class="cashier-block-subtitle">' . htmlspecialchars($subtitle, ENT_QUOTES, 'UTF-8') . '</p>
+                    <p class="cashier-block-contact">
+                        <a href="tel:' . $phoneEsc . '" class="cashier-block-phone">' . $phoneEsc . '</a>
+                    </p>
+                </div>
+                <div class="cashier-block-footer">' . $footerActions . '</div>
+            </div>
+        </div>
+        <style>
+            .cashier-block-overlay {
+                position: fixed; inset: 0; z-index: 9999;
+                display: flex; align-items: center; justify-content: center;
+                padding: 16px; box-sizing: border-box;
+                background: rgba(15, 23, 42, 0.88);
+                font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            }
+            .cashier-block-card {
+                width: 100%; max-width: 420px;
+                background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+                color: #f8fafc;
+                border-radius: 16px;
+                box-shadow: 0 24px 48px rgba(0,0,0,0.45);
+                border: 1px solid rgba(255,255,255,0.12);
+                overflow: hidden;
+                text-align: center;
+            }
+            .cashier-block-header {
+                padding: 22px 22px 16px;
+                background: color-mix(in srgb, var(--block-accent) 18%, transparent);
+                border-bottom: 1px solid rgba(255,255,255,0.08);
+            }
+            .cashier-block-icon { font-size: 2.5rem; line-height: 1; margin-bottom: 10px; }
+            .cashier-block-title {
+                margin: 0; font-size: clamp(1.2rem, 4vw, 1.5rem);
+                font-weight: 700; line-height: 1.25; letter-spacing: -0.02em;
+            }
+            .cashier-block-body { padding: 20px 22px 8px; }
+            .cashier-block-balance {
+                margin: 0 auto 16px; max-width: 100%;
+                padding: 12px 16px;
+                background: rgba(245, 158, 11, 0.15);
+                border: 1px solid rgba(245, 158, 11, 0.35);
+                border-radius: 10px;
+                font-size: clamp(0.95rem, 3vw, 1.1rem);
+                font-weight: 700; color: #fde68a;
+                word-break: break-word;
+            }
+            .cashier-block-subtitle {
+                margin: 0 0 14px; font-size: 0.95rem; line-height: 1.55; color: #cbd5e1;
+            }
+            .cashier-block-contact { margin: 0; }
+            .cashier-block-phone {
+                display: inline-block; font-size: 1.15rem; font-weight: 600;
+                color: #38bdf8; text-decoration: none;
+            }
+            .cashier-block-phone:hover { text-decoration: underline; }
+            .cashier-block-footer {
+                display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
+                padding: 18px 22px 22px;
+                border-top: 1px solid rgba(255,255,255,0.08);
+                background: rgba(0,0,0,0.2);
+            }
+            .cashier-block-btn {
+                display: inline-block; min-width: 180px;
+                padding: 14px 22px; border-radius: 10px;
+                font-size: 1rem; font-weight: 700; text-decoration: none;
+                text-align: center; border: 2px solid transparent;
+                transition: transform 0.15s ease, box-shadow 0.15s ease;
+            }
+            .cashier-block-btn:hover { transform: translateY(-1px); }
+            .cashier-block-btn-primary {
+                color: #0f172a; background: #f8fafc;
+                border-color: rgba(255,255,255,0.2);
+                box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            }
+            .cashier-block-btn-secondary {
+                color: #f8fafc; background: transparent;
+                border-color: rgba(255,255,255,0.35);
+            }
+        </style>';
+    }
+
     $response = ['status' => 'error', 'message' => 'An error occurred.'];
 
     $cashier_id                   = isset($_SESSION['cashier_id']) ? $_SESSION['cashier_id'] : '';
@@ -111,170 +243,39 @@
 				$profit_json =$row['profit_json'];
 
 				// $newCashierPackage = base64_encode(openssl_encrypt(10000, 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV));
-            	$bala = openssl_decrypt(base64_decode($bala), 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV);
+            	$bala = decrypt_cashier_package($bala);
                 if ($row['is_blocked'] == "1") {
-                    echo '
-							<div id="overlay" style="
-								position: fixed;
-								top: 0;
-								left: 0;
-								width: 100%;
-								height: 100%;
-								background: rgba(0, 0, 0, 0.7);
-								color: white;
-								display: flex;
-								align-items: center;
-								justify-content: center;
-								z-index: 9999;">
-								<div style="text-align: center;">
-									<h2>Blocked Partnners Account</h2>
-									<p>Please contact your admin to continue. </p>
-									<p>- 0918101037 </p>
-								</div>
-							</div>
-						';
+                    renderCashierBlockOverlay('blocked');
                 }
 
                 if ($row['is_active'] == "1") {
-                    echo '
-							<div id="overlay" style="
-								position: fixed;
-								top: 0;
-								left: 0;
-								width: 100%;
-								height: 100%;
-								background: rgba(0, 0, 0, 0.7);
-								color: white;
-								display: flex;
-								align-items: center;
-								justify-content: center;
-								z-index: 9999;">
-								<div style="text-align: center;">
-									<h2>Sorry, your account is locked out!</h2>
-									<p>Please contact <i style="color:#EF6769;"> 0918101037 </i> for assistance.</p>
-									<div style="text-align: center;">
-										<a href="../config/logout.php"
-										style="display: inline-block; text-decoration: none; color: black; background-color: white; padding: 20px; margin-bottom: 20px; width: 200px; font-size: 30px; text-align: center; border: 2px solid black; border-radius: 8px;">
-										Logout
-										</a>
-									</div>
-								</div>
-							</div>
-						';
+                    renderCashierBlockOverlay('locked');
                 }
 
-                if ($bala<= "100") {
-                    echo '
-						<div id="overlay" style="
-							position: fixed;
-							top: 0;
-							left: 0;
-							width: 100%;
-							height: 100%;
-							background: rgba(0, 0, 0, 0.7);
-							color: white;
-							display: flex;
-							align-items: center;
-							justify-content: center;
-							z-index: 9999;
-						">
-							<div style="text-align: center;">
-								<a href="../cashier/report.php"
-                                   style="display: inline-block; text-decoration: none; color: black; background-color: white; padding: 20px; margin-bottom: 20px; width: 200px; font-size: 30px; text-align: center; border: 2px solid black; border-radius: 8px;">
-                                   Go to Report
-                                </a>
-
-								<h2>Insufficient Balance {' . $row['cashier_id'] . " = " . $bala . ' ብር}</h2>
-								<p>Please recharge your balance to continue. </p>
-								<p>- 0918101037 </p>
-							</div>
-						</div>
-						';
+                if ($bala <= "100") {
+                    renderCashierBlockOverlay('low_balance', [
+                        'cashier_id' => $row['cashier_id'],
+                        'balance'    => $bala,
+                    ]);
                 }
 
             } else {
                 $round_number = $row['round_number'] + 1;
-				$bala = openssl_decrypt(base64_decode($row['cashier_package']), 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV);
+				$bala = decrypt_cashier_package($row['cashier_package']);
 
                 if ($row['is_blocked'] == "1") {
-                    echo '
-						<div id="overlay" style="
-							position: fixed;
-							top: 0;
-							left: 0;
-							width: 100%;
-							height: 100%;
-							background: rgba(0, 0, 0, 0.7);
-							color: white;
-							display: flex;
-							align-items: center;
-							justify-content: center;
-							z-index: 9999;
-						">
-							<div style="text-align: center;">
-								<h2>Blocked Partnners Account</h2>
-								<p>Please contact your admin to continue.</p>
-								<p>- 0918101037 </p>
-							</div>
-						</div>
-						';
+                    renderCashierBlockOverlay('blocked');
                 }
 
                 if ($row['is_active'] == "1") {
-                    echo '
-							<div id="overlay" style="
-								position: fixed;
-								top: 0;
-								left: 0;
-								width: 100%;
-								height: 100%;
-								background: rgba(0, 0, 0, 0.7);
-								color: white;
-								display: flex;
-								align-items: center;
-								justify-content: center;
-								z-index: 9999;">
-								<div style="text-align: center;">
-									<h2>Sorry, your account is locked out!</h2>
-									<p>Please contact <i style="color:red;"> 0918101037 </i> for assistance.</p>
-									<div style="text-align: center;">
-										<a href="../config/logout.php"
-										style="display: inline-block; text-decoration: none; color: black; background-color: white; padding: 20px; margin-bottom: 20px; width: 200px; font-size: 30px; text-align: center; border: 2px solid black; border-radius: 8px;">
-										Logout
-										</a>
-									</div>
-								</div>
-							</div>
-						';
+                    renderCashierBlockOverlay('locked');
                 }
 
                 if ($bala <= "100") {
-                    echo '
-						<div id="overlay" style="
-							position: fixed;
-							top: 0;
-							left: 0;
-							width: 100%;
-							height: 100%;
-							background: rgba(0, 0, 0, 0.7);
-							color: white;
-							display: flex;
-							align-items: center;
-							justify-content: center;
-							z-index: 9999;
-						">
-							<div style="text-align: center;">
-							<a href="../cashier/report.php"
-                               style="display: inline-block; text-decoration: none; color: black; background-color: white; padding: 20px; margin-bottom: 20px; width: 200px; font-size: 30px; text-align: center; border: 2px solid black; border-radius: 8px;">
-                               Go to Report
-                            </a>
-
-								<h2>Insufficient Balance {' . $row['cashier_id'] . " = " . $bala . ' ብር}</h2>
-								<p>Please recharge your balance to continue.</p>
-								<p>- 0918101037 </p>
-							</div>
-						</div>
-						';
+                    renderCashierBlockOverlay('low_balance', [
+                        'cashier_id' => $row['cashier_id'],
+                        'balance'    => $bala,
+                    ]);
                 }
             }
 
@@ -316,10 +317,7 @@
 	<link rel="stylesheet" type="text/css" href="../bootstrap//css/congura.css">
 	<link rel="stylesheet" type="text/css" href="../cashier/right-menu.css">
 	<link rel="stylesheet" type="text/css" href="../bootstrap/css/reg_card.css">
-	<!-- <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css"> -->
-	<!-- <link rel="stylesheet" href="../bootstrap/css/bootstrap.css"> -->
 	<script src="../bootstrap/js/bootstrap.bundle.min.js"></script>
-	<script src="../bootstrap//js/bootstrap.bundle.js"></script>
 	<script src="../bootstrap//js/jquery.js"></script>
 	<script src="../bootstrap/js/bootstrap.min.js"></script>
 	<script src="../bootstrap/js/umd.js"></script>
@@ -1413,38 +1411,6 @@
 
 
 
-					<?php
-						// $data = [
-						// 	'ran_voice' => $sound,
-						// 	'patt' => $pattern,
-						// 	'start_get_mony_from' => $start_get_mony_from,
-						// 	'bonus_eligiblity_starts_from' => $bonus_eligiblity_starts_from,
-						// 	'lock_round_up_last_digit' => $lock_round_up_last_digit,
-						// 	'round' => $round_number,
-						// 	'sew' => $sew,
-						// 	'birr' => $birr,
-						// 	'bala' => $bala,
-						// 	'profit' => $profit,
-						// 	'new_bonus_status' => $new_bonus_status,
-						// 	'max_new_bonus_per_day' => $max_new_bonus_per_day,
-						// 	'todays_new_bonus_count' => $todays_new_bonus_count,
-						// 	'auto_check_result' => $auto_check_result,
-						// 	'color' => $color,
-						// 	'good_bingo_sound' => $good_bingo_sound
-						// ];
-
-						// foreach ($data as $id => $value) {
-						// 	// Apply larger font size to specific elements
-						// 	$style = in_array($id, ['new_bonus_status', 'max_new_bonus_per_day', 'todays_new_bonus_count', 'auto_check_result', 'color', 'good_bingo_sound']) 
-						// 		? 'style="font-size:50px;"' 
-						// 		: '';
-						// 	echo "<p id=\"$id\" hidden $style>$value</p>";
-						// }
-						?>
-
-
-
-
 			<!-- ========================================================================== -->
 
 	<div id="user-content" style="display: block;" >
@@ -1810,80 +1776,27 @@
 
 
 
-							// load settings data at start up
-							$(document).ready(async function() 
-							{
-									try {
-										const cashierId = localStorage.getItem("cashier_id");
-										const response = await fetch('../config/DbFunction.php', {
-											method: 'POST',
-											headers: {
-												'Content-Type': 'application/x-www-form-urlencoded',
-											},
-											body: `get_cashier_data=${cashierId}`
+							$(document).ready(async function() {
+									const savedSettings = localStorage.getItem('app_settings');
+									if (savedSettings) {
+										try {
+											applyCashierSettingsToForm(JSON.parse(savedSettings));
+										} catch (e) {
+											console.error('Invalid app_settings in localStorage', e);
+										}
+									} else {
+										const hiddenRounding = document.getElementById('income_rounding');
+										applyIncomeRoundingFromSettings({
+											income_rounding: hiddenRounding ? hiddenRounding.innerText.trim() : 'off'
 										});
-										
-										// Check response status first
-										if (!response.ok) {
-											throw new Error(`HTTP error! status: ${response.status}`);
-										}
+									}
+									const incomeRoundingToggle = document.getElementById('settings_income_rounding');
+									if (incomeRoundingToggle) {
+										incomeRoundingToggle.addEventListener('change', syncIncomeRoundingToggleUi);
+									}
 
-										// Get response text first
-										const responseText = await response.text();
-										
-										// Check if response is empty
-										if (!responseText.trim()) {
-											throw new Error("Empty server response");
-										}
-
-										// Parse JSON safely
-										const parsedData = JSON.parse(responseText);
-										
-										// Validate response structure
-										if (!Array.isArray(parsedData)) {
-											throw new Error("Expected array in response");
-										}
-
-										const cashierData = parsedData[0];
-										if (!cashierData?.settings_json) {
-											throw new Error("No settings_json found in response");
-										}
-
-										// Parse settings JSON
-										const settings = JSON.parse(cashierData.settings_json);
-										console.log("Settings loaded:", settings); // Debugging
-										
-										 // Bonus Settings
-										const setBonusEl = document.getElementById("settings_set_bonus");
-										const bonusAmountEl = document.getElementById("settings_bonus_amount");
-										const bonusOptionsEl = document.getElementById("sittings_bonus_options");
-										const bonusSubMenu = document.querySelector(".bonus-submenu");
-										
-										if (setBonusEl) setBonusEl.value = settings.bonus?.status || "off";
-										if (bonusAmountEl) bonusAmountEl.value = settings.bonus?.amount || "20";
-										if (bonusOptionsEl) bonusOptionsEl.value = settings.bonus?.per_day || "1";
-										if (bonusSubMenu) {
-											bonusSubMenu.style.display = settings.bonus?.status === "on" ? "block" : "none";
-										}
-
-										// System Settings
-										const checkResultEl = document.getElementById("settings_check_result");
-										const profitEl = document.getElementById("settings_cashier_profit");
-										const soundEl = document.getElementById("settings_good_bingo_sound");
-										
-										if (checkResultEl) checkResultEl.value = settings.system?.check_result || "auto";
-										if (profitEl) profitEl.value = settings.system?.profit || "10";
-										if (soundEl) soundEl.value = settings.system?.good_bingo_sound || "default";
-										applyBingoClaimModeFromSettings(settings.system);
-										applyIncomeRoundingFromSettings(settings.system);
-
-										// Toggle Settings
-										$("#will_start_sound_toggle").prop("checked", settings.toggles?.will_start ?? true);
-										$("#started_sound_toggle").prop("checked", settings.toggles?.started ?? true);
-										$("#stopped_sound_toggle").prop("checked", settings.toggles?.stopped ?? true);
-										$("#counte_registerd_card").prop("checked", settings.toggles?.show_card_count ?? true);
-
-
+									try {
+										await fetchAndApplyCashierSettingsToForm();
 									} catch (error) {
 										console.error("Settings load failed:", error);
 										showAlert("Failed to load settings. Please check console for details.", "danger");
@@ -1899,76 +1812,7 @@
 									settingsMenu.classList.add("active");
 
 									try {
-										const cashierId = localStorage.getItem("cashier_id");
-										const response = await fetch('../config/DbFunction.php', {
-											method: 'POST',
-											headers: {
-												'Content-Type': 'application/x-www-form-urlencoded',
-											},
-											body: `get_cashier_data=${cashierId}`
-										});
-										
-										// Check response status first
-										if (!response.ok) {
-											throw new Error(`HTTP error! status: ${response.status}`);
-										}
-
-										// Get response text first
-										const responseText = await response.text();
-										
-										// Check if response is empty
-										if (!responseText.trim()) {
-											throw new Error("Empty server response");
-										}
-
-										// Parse JSON safely
-										const parsedData = JSON.parse(responseText);
-										
-										// Validate response structure
-										if (!Array.isArray(parsedData)) {
-											throw new Error("Expected array in response");
-										}
-
-										const cashierData = parsedData[0];
-										if (!cashierData?.settings_json) {
-											throw new Error("No settings_json found in response");
-										}
-
-										// Parse settings JSON
-										const settings = JSON.parse(cashierData.settings_json);
-										console.log("Settings loaded:", settings); // Debugging
-										
-										 // Bonus Settings
-										const setBonusEl = document.getElementById("settings_set_bonus");
-										const bonusAmountEl = document.getElementById("settings_bonus_amount");
-										const bonusOptionsEl = document.getElementById("sittings_bonus_options");
-										const bonusSubMenu = document.querySelector(".bonus-submenu");
-										
-										if (setBonusEl) setBonusEl.value = settings.bonus?.status || "off";
-										if (bonusAmountEl) bonusAmountEl.value = settings.bonus?.amount || "20";
-										if (bonusOptionsEl) bonusOptionsEl.value = settings.bonus?.per_day || "1";
-										if (bonusSubMenu) {
-											bonusSubMenu.style.display = settings.bonus?.status === "on" ? "block" : "none";
-										}
-
-										// System Settings
-										const checkResultEl = document.getElementById("settings_check_result");
-										const profitEl = document.getElementById("settings_cashier_profit");
-										const soundEl = document.getElementById("settings_good_bingo_sound");
-										
-										if (checkResultEl) checkResultEl.value = settings.system?.check_result || "auto";
-										if (profitEl) profitEl.value = settings.system?.profit || "10";
-										if (soundEl) soundEl.value = settings.system?.good_bingo_sound || "default";
-										applyBingoClaimModeFromSettings(settings.system);
-										applyIncomeRoundingFromSettings(settings.system);
-
-										// Toggle Settings
-										$("#will_start_sound_toggle").prop("checked", settings.toggles?.will_start ?? true);
-										$("#started_sound_toggle").prop("checked", settings.toggles?.started ?? true);
-										$("#stopped_sound_toggle").prop("checked", settings.toggles?.stopped ?? true);
-										$("#counte_registerd_card").prop("checked", settings.toggles?.show_card_count ?? true);
-
-
+										await fetchAndApplyCashierSettingsToForm();
 									} catch (error) {
 										console.error("Settings load failed:", error);
 										showAlert("Failed to load settings. Please check console for details.", "danger");
@@ -2087,42 +1931,6 @@
 												}
 											});
 									});
-
-									// Load settings when page opens
-									$(document).ready(function() 
-									{
-										const savedSettings = localStorage.getItem('app_settings');
-										if (savedSettings) {
-											const settings = JSON.parse(savedSettings);
-											// Bonus settings
-											$("#settings_set_bonus").val(settings.bonus.status);
-											$("#settings_bonus_amount").val(settings.bonus.amount);
-											$("#sittings_bonus_options").val(settings.bonus.per_day);
-											
-											// System settings
-											$("#settings_check_result").val(settings.system.check_result);
-											$("#settings_cashier_profit").val(settings.system.profit);
-											$("#settings_good_bingo_sound").val(settings.system.good_bingo_sound);
-											applyBingoClaimModeFromSettings(settings.system);
-											applyIncomeRoundingFromSettings(settings.system);
-											
-											// Toggle states
-											$("#will_start_sound_toggle").prop("checked", settings.toggles.will_start);
-											$("#started_sound_toggle").prop("checked", settings.toggles.started);
-											$("#stopped_sound_toggle").prop("checked", settings.toggles.stopped);
-											$("#counte_registerd_card").prop("checked", settings.toggles.show_card_count);
-										} else {
-											const hiddenRounding = document.getElementById('income_rounding');
-											applyIncomeRoundingFromSettings({
-												income_rounding: hiddenRounding ? hiddenRounding.innerText.trim() : 'off'
-											});
-										}
-										const incomeRoundingToggle = document.getElementById('settings_income_rounding');
-										if (incomeRoundingToggle) {
-											incomeRoundingToggle.addEventListener('change', syncIncomeRoundingToggleUi);
-										}
-									});
-
 
 								// Show/hide submenu based on bonus status
 								document.getElementById('settings_set_bonus').addEventListener('change', function() {
@@ -2293,7 +2101,7 @@
                                                                 }
 
 																// $newCashierPackage = base64_encode(openssl_encrypt(10000, 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV));
-            													$cashier_package = openssl_decrypt(base64_decode($cashier_package), 'AES-256-CBC', ENCRYPTION_KEY, 0, ENCRYPTION_IV);
+            													$cashier_package = decrypt_cashier_package($cashier_package);
                                                             ?>
 
                                                                         <style>
@@ -3137,28 +2945,7 @@
 		var income=n*s;
 		if(n!=0 && s!=0 && b>0)
 		{
-			// Get the last digit
-			// Calculate the total amount
-
-
-			// var lastDigit = total % 10;
-
-			// // Round the last digit based on the rule
-			// let roundedLastDigit=0;
-			// if (lastDigit > 5) {
-			// 	roundedLastDigit = 10;
-			// } else {
-			// 	roundedLastDigit = 0;
-			// }
-
-			// // Calculate the new rounded total
-			// var roundedTotal = total - lastDigit + roundedLastDigit;
-			// if (roundedTotal < 10) {
-			// 	roundedTotal = 10;
-			// }
-
-			// var roundedTotal = total - lastDigit + roundedLastDigit;
-			            var roundedTotal = roundNetIncomeTotal(total);
+			var roundedTotal = roundNetIncomeTotal(total);
 
 			var start_get_mony_from = document.getElementById("start_get_mony_from").innerText;
 			if (income< start_get_mony_from) {
@@ -3172,6 +2959,70 @@
 			}
 		}
 
+	}
+
+	function applyCashierSettingsToForm(settings) {
+		if (!settings) return;
+		const setBonusEl = document.getElementById("settings_set_bonus");
+		const bonusAmountEl = document.getElementById("settings_bonus_amount");
+		const bonusOptionsEl = document.getElementById("sittings_bonus_options");
+		const bonusSubMenu = document.querySelector(".bonus-submenu");
+
+		if (setBonusEl) setBonusEl.value = settings.bonus?.status || "off";
+		if (bonusAmountEl) bonusAmountEl.value = settings.bonus?.amount || "20";
+		if (bonusOptionsEl) bonusOptionsEl.value = settings.bonus?.per_day || "1";
+		if (bonusSubMenu) {
+			bonusSubMenu.style.display = settings.bonus?.status === "on" ? "block" : "none";
+		}
+
+		const checkResultEl = document.getElementById("settings_check_result");
+		const profitEl = document.getElementById("settings_cashier_profit");
+		const soundEl = document.getElementById("settings_good_bingo_sound");
+
+		if (checkResultEl) checkResultEl.value = settings.system?.check_result || "auto";
+		if (profitEl) profitEl.value = settings.system?.profit || "10";
+		if (soundEl) soundEl.value = settings.system?.good_bingo_sound || "default";
+		applyBingoClaimModeFromSettings(settings.system);
+		applyIncomeRoundingFromSettings(settings.system);
+
+		$("#will_start_sound_toggle").prop("checked", settings.toggles?.will_start ?? true);
+		$("#started_sound_toggle").prop("checked", settings.toggles?.started ?? true);
+		$("#stopped_sound_toggle").prop("checked", settings.toggles?.stopped ?? true);
+		$("#counte_registerd_card").prop("checked", settings.toggles?.show_card_count ?? true);
+	}
+
+	async function fetchAndApplyCashierSettingsToForm() {
+		const cashierId = localStorage.getItem("cashier_id");
+		const response = await fetch('../config/DbFunction.php', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: `get_cashier_data=${cashierId}`
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		const responseText = await response.text();
+		if (!responseText.trim()) {
+			throw new Error("Empty server response");
+		}
+
+		const parsedData = JSON.parse(responseText);
+		if (!Array.isArray(parsedData)) {
+			throw new Error("Expected array in response");
+		}
+
+		const cashierData = parsedData[0];
+		if (!cashierData?.settings_json) {
+			throw new Error("No settings_json found in response");
+		}
+
+		const settings = JSON.parse(cashierData.settings_json);
+		applyCashierSettingsToForm(settings);
+		return settings;
 	}
 
 	function resolveBingoClaimMode(system) {
