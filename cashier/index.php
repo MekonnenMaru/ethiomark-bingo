@@ -1522,9 +1522,9 @@
 								<span class="bonus-resize-handle bonus-resize-s" data-resize="s" title="Resize" aria-hidden="true"></span>
 								<span class="bonus-resize-handle bonus-resize-e" data-resize="e" title="Resize" aria-hidden="true"></span>
 								<span class="bonus-resize-handle bonus-resize-w" data-resize="w" title="Resize" aria-hidden="true"></span>
+								<button type="button" id="close-bonus" aria-label="Close bonus panel">&times;</button>
 								<div class="bonus-panel-header">
 									<h1 class="bonus-drag-handle">🎉 ቺርስ 🎉</h1>
-									<button type="button" id="close-bonus" aria-label="Close bonus panel">&times;</button>
 								</div>
 								<div id="bonusContent">
 										<p hidden id = 'special_bonus_data'><?php echo implode(', ', $winnerNumbers); ?></p>
@@ -1707,7 +1707,7 @@
 								bonusContainer.style.height = Math.round(size.height) + 'px';
 							}
 
-							const BONUS_FONT_BASE = { title: 36, cell: 26, highlight: 30, base: 18 };
+							const BONUS_FONT_BASE = { title: 30, cell: 26, highlight: 30, base: 18 };
 							const BONUS_FONT_MIN_SCALE = 0.45;
 
 							function applyBonusFontScale(scale) {
@@ -1719,9 +1719,20 @@
 								bonusContainer.style.setProperty('--bonus-grid-gap', (8 * scale) + 'px');
 							}
 
+							function bonusTitleOverflows() {
+								const title = bonusContainer.querySelector('.bonus-drag-handle');
+								if (!title) {
+									return false;
+								}
+								return title.scrollWidth > title.clientWidth + 1;
+							}
+
 							function bonusPanelOverflows() {
 								const content = document.getElementById('bonusContent');
 								const inner = bonusContainer.querySelector('.special-bonus');
+								if (bonusTitleOverflows()) {
+									return true;
+								}
 								if (!content || !inner) {
 									return false;
 								}
@@ -2487,14 +2498,13 @@
 													<div class="sound-input-text">
 														<select id="voiceselect" class="voiceselect" onchange="change_language()">
 														<option value="11" <?php echo $sound == 11 ? 'selected' : ''; ?>>New voice</option>
-														<option value="12" <?php echo $sound == 12 ? 'selected' : ''; ?>>Bereket</option>
-														<option hidden value="10" <?php echo $sound == 10 ? 'selected' : ''; ?>>Addis</option>
-														<option hidden value="1"  <?php echo $sound == 1 ? 'selected' : ''; ?>>Bereket</option>
-														<option hidden value="2"  <?php echo $sound == 2 ? 'selected' : ''; ?>>Nigus</option>
+														<option value="10" <?php echo $sound == 10 ? 'selected' : ''; ?>>Addis</option>
+														<option value="12" <?php echo ($sound == 12 || $sound == 1) ? 'selected' : ''; ?>>Bereket</option>
+														<option value="2"  <?php echo $sound == 2 ? 'selected' : ''; ?>>Nigus</option>
 														<option value="3"  <?php echo $sound == 3 ? 'selected' : ''; ?>>Amharic Arada</option>
-														<option hidden value="4"  <?php echo $sound == 4 ? 'selected' : ''; ?>>Amharic formal</option>
-														<option hidden value="5"  <?php echo $sound == 5 ? 'selected' : ''; ?>>Amharic yordi</option>
-														<option hidden value="6"  <?php echo $sound == 6 ? 'selected' : ''; ?>>Amharic Beti</option>
+														<option value="4"  <?php echo $sound == 4 ? 'selected' : ''; ?>>Amharic formal</option>
+														<option value="5"  <?php echo $sound == 5 ? 'selected' : ''; ?>>Amharic yordi</option>
+														<option value="6"  <?php echo $sound == 6 ? 'selected' : ''; ?>>Amharic Beti</option>
 														<option value="7"  <?php echo $sound == 7 ? 'selected' : ''; ?>>Oromifa Female</option>
 														<option value="8"  <?php echo $sound == 8 ? 'selected' : ''; ?>>Tigrigna Female</option>
 														<option value="9"  <?php echo $sound == 9 ? 'selected' : ''; ?>>Tigrigna Male</option>
@@ -4091,40 +4101,49 @@
 	let randomstring = "";
 
 	function highlightDrawnNumber(randomNumber) {
-		const cell = bingoUiCache.numCells[randomNumber];
+		const n = Number(randomNumber);
+		if (!Number.isFinite(n) || n < 1 || n > 75) {
+			return;
+		}
+		const cell = bingoUiCache.numCells[n];
 		if (cell) {
 			cell.classList.add('callnum');
 		}
 		let letter = 'O';
-		if (randomNumber <= 15) {
+		if (n <= 15) {
 			letter = 'B';
-		} else if (randomNumber <= 30) {
+		} else if (n <= 30) {
 			letter = 'I';
-		} else if (randomNumber <= 45) {
+		} else if (n <= 45) {
 			letter = 'N';
-		} else if (randomNumber <= 60) {
+		} else if (n <= 60) {
 			letter = 'G';
 		}
 		if (bingoUiCache.randEl) {
-			bingoUiCache.randEl.innerText = letter + '-' + randomNumber;
+			bingoUiCache.randEl.innerText = letter + '-' + n;
 		}
 	}
 
 	function randomnuber() {
-		let randomstringArray = randomstring.split(',').filter(value => value !== 'undefined');
-		let validRandomstring = randomstringArray.join(',');
-		let is_last_drawn = validRandomstring.slice(0, -1).split(',').filter(Boolean).length;
+		let randomstringArray = randomstring.split(',').filter(value => value !== '' && value !== 'undefined');
 		let drawnCount = randomstringArray.length;
 
 		if (bingoUiCache.drawnCounterEl) {
 			bingoUiCache.drawnCounterEl.innerText = drawnCount;
 		}
 
-		if (is_last_drawn === 75) {
+		if (drawnCount >= 75) {
 			change();
+			return;
 		}
 
 		let randomNumber = getRandomNumber();
+		if (randomNumber == null || randomNumber === '' || Number.isNaN(Number(randomNumber))) {
+			change();
+			return;
+		}
+		randomNumber = Number(randomNumber);
+
 		voices(randomNumber);
 		updateTable(randomNumber);
 		randomstring = randomstring + randomNumber + ",";
@@ -4132,6 +4151,14 @@
 			bingoUiCache.ranVoiceEl.innerText = randomNumber;
 		}
 		highlightDrawnNumber(randomNumber);
+
+		const newCount = drawnCount + 1;
+		if (bingoUiCache.drawnCounterEl) {
+			bingoUiCache.drawnCounterEl.innerText = newCount;
+		}
+		if (newCount >= 75) {
+			change();
+		}
 	}
 
 
@@ -4148,12 +4175,7 @@
 
 
 	function functionC() {
-
-
-	 randomnuber();
-
-	  max=max-1;
-
+		randomnuber();
 	}
 	var slider = document.getElementById("myRange");
 	var output = document.getElementById("demo");
@@ -4243,7 +4265,7 @@
 
 
 				// Split the string into an array
-				let randomstringArray = randomstring.split(',').filter(value => value !== 'undefined');
+				let randomstringArray = randomstring.split(',').filter(value => value !== '' && value !== 'undefined');
 
 				// Join the filtered array back into a string
 				let validRandomstring = randomstringArray.join(',');
