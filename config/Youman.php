@@ -71,5 +71,5 @@ function encrypt_cashier_package($plain): string
     );
 }
 
-require_once __DIR__ . '/WebCopyGuard.php';
+require_once dirname(__DIR__) . '/config/WebCopyGuard.php';
 web_copy_guard();
