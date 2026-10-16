@@ -820,7 +820,10 @@
 					if (new_bonus_status == "on") {
 
 						new_bonus_btn.disabled = false;
-						new_container.style.display = 'block';
+						new_container.style.display = 'flex';
+						if (window.scheduleBonusPanelFit) {
+							window.scheduleBonusPanelFit();
+						}
 					} 
 					else 
 					{
@@ -1515,13 +1518,18 @@
 
 							<!-- Bonus Description Container -->
 							<div id="bonusContainer">
-								<button id="close-bonus">&times;</button>
+								<span class="bonus-resize-handle bonus-resize-n" data-resize="n" title="Resize" aria-hidden="true"></span>
+								<span class="bonus-resize-handle bonus-resize-s" data-resize="s" title="Resize" aria-hidden="true"></span>
+								<span class="bonus-resize-handle bonus-resize-e" data-resize="e" title="Resize" aria-hidden="true"></span>
+								<span class="bonus-resize-handle bonus-resize-w" data-resize="w" title="Resize" aria-hidden="true"></span>
+								<div class="bonus-panel-header">
+									<h1 class="bonus-drag-handle">🎉 ቺርስ 🎉</h1>
+									<button type="button" id="close-bonus" aria-label="Close bonus panel">&times;</button>
+								</div>
 								<div id="bonusContent">
-									<h1>🎉 ቺርስ 🎉</h1>
-										<!-- <h2>በ <span class="highlight"> 4 </span> ጥሪ ከጨረሱ <span class="highlight"> 200 </span> ብር🎉</h2> -->
 										<p hidden id = 'special_bonus_data'><?php echo implode(', ', $winnerNumbers); ?></p>
 
-									<p class="special-bonus">
+									<div class="special-bonus">
 										<?php
                                             // Generate bingo-word buttons dynamically with BINGO prefixes
                                             if (! empty($winnerNumbers)) {
@@ -1529,12 +1537,12 @@
                                                     $bingoLetter = getBingoLetter((int) $number);
                                                     echo "<button class='bingo-word'><span  class='bingo-word-text'>{$bingoLetter}{$number}</span></button>";
                                                 }
-                                                echo '<button class="bingo-word"> ከጨረሱ <span class="highlight">' . $new_bonus_amount . ' ብር🎉</span></button>';
+                                                echo '<button type="button" class="bingo-word bonus-total-row"> ከጨረሱ <span class="highlight">' . $new_bonus_amount . ' ብር🎉</span></button>';
                                             } else {
                                                 echo "<button class='bingo-word'>No Bonus</button>";
                                             }
                                         ?>
-									</p>
+									</div>
 								</div>
 							</div>
 
@@ -1682,9 +1690,95 @@
 							// Get the bonus container
 							const bonusContainer = document.getElementById('bonusContainer');
 
-							// Variables to track dragging
+							// Variables to track dragging / resizing
 							let isDragging = false;
+							let isResizing = false;
+							let resizeDir = '';
+							let resizeStart = { x: 0, y: 0, w: 0, h: 0, left: 0, top: 0 };
 							let offsetX, offsetY;
+
+							function bonusContainerRect() {
+								return bonusContainer.getBoundingClientRect();
+							}
+
+							function applyBonusContainerSize(size) {
+								if (!size || !size.width || !size.height) return;
+								bonusContainer.style.width = Math.round(size.width) + 'px';
+								bonusContainer.style.height = Math.round(size.height) + 'px';
+							}
+
+							const BONUS_FONT_BASE = { title: 36, cell: 26, highlight: 30, base: 18 };
+							const BONUS_FONT_MIN_SCALE = 0.45;
+
+							function applyBonusFontScale(scale) {
+								bonusContainer.style.setProperty('--bonus-title-size', (BONUS_FONT_BASE.title * scale) + 'px');
+								bonusContainer.style.setProperty('--bonus-cell-size', (BONUS_FONT_BASE.cell * scale) + 'px');
+								bonusContainer.style.setProperty('--bonus-highlight-size', (BONUS_FONT_BASE.highlight * scale) + 'px');
+								bonusContainer.style.setProperty('--bonus-base-size', (BONUS_FONT_BASE.base * scale) + 'px');
+								bonusContainer.style.setProperty('--bonus-content-pad', (20 * scale) + 'px');
+								bonusContainer.style.setProperty('--bonus-grid-gap', (8 * scale) + 'px');
+							}
+
+							function bonusPanelOverflows() {
+								const content = document.getElementById('bonusContent');
+								const inner = bonusContainer.querySelector('.special-bonus');
+								if (!content || !inner) {
+									return false;
+								}
+								return (
+									content.scrollHeight > content.clientHeight + 2 ||
+									content.scrollWidth > content.clientWidth + 2 ||
+									inner.scrollHeight > inner.clientHeight + 2 ||
+									inner.scrollWidth > inner.clientWidth + 2
+								);
+							}
+
+							function fitBonusPanelTypography() {
+								if (!bonusContainer || bonusContainer.style.display === 'none') {
+									return;
+								}
+								let scale = 1;
+								applyBonusFontScale(scale);
+								let guard = 0;
+								while (bonusPanelOverflows() && scale > BONUS_FONT_MIN_SCALE && guard < 30) {
+									scale -= 0.05;
+									applyBonusFontScale(scale);
+									guard += 1;
+								}
+							}
+
+							let bonusFitRaf = 0;
+							function scheduleBonusPanelFit() {
+								cancelAnimationFrame(bonusFitRaf);
+								bonusFitRaf = requestAnimationFrame(function() {
+									requestAnimationFrame(fitBonusPanelTypography);
+								});
+							}
+
+							function setBonusPanelVisible(visible) {
+								bonusContainer.style.display = visible ? 'flex' : 'none';
+								if (visible) {
+									scheduleBonusPanelFit();
+								}
+							}
+
+							function persistBonusContainerLayout() {
+								const rect = bonusContainerRect();
+								localStorage.setItem('bonusContainerPosition', JSON.stringify({
+									left: parseInt(bonusContainer.style.left, 10) || Math.round(rect.left),
+									top: parseInt(bonusContainer.style.top, 10) || Math.round(rect.top),
+								}));
+								localStorage.setItem('bonusContainerSize', JSON.stringify({
+									width: bonusContainer.offsetWidth,
+									height: bonusContainer.offsetHeight,
+								}));
+							}
+
+							const savedSize = JSON.parse(localStorage.getItem('bonusContainerSize') || 'null');
+							if (savedSize) {
+								applyBonusContainerSize(savedSize);
+							}
+							scheduleBonusPanelFit();
 
 							document.addEventListener("DOMContentLoaded", function () {
 								var bonus_btn = document.getElementById('bonus');
@@ -1717,23 +1811,84 @@
 								bonusContainer.style.right = '20px';
 								bonusContainer.style.top = '80%';
 							}
-							// Mouse down event to start dragging
-							bonusContainer.addEventListener('mousedown', (e) => {
-								isDragging = true;
-								offsetX = e.clientX - bonusContainer.getBoundingClientRect().left;
-								offsetY = e.clientY - bonusContainer.getBoundingClientRect().top;
+							bonusContainer.querySelectorAll('.bonus-resize-handle').forEach((handle) => {
+								handle.addEventListener('mousedown', (e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									isResizing = true;
+									resizeDir = handle.getAttribute('data-resize') || 'se';
+									const rect = bonusContainerRect();
+									bonusContainer.style.right = 'auto';
+									bonusContainer.style.left = `${rect.left}px`;
+									bonusContainer.style.top = `${rect.top}px`;
+									resizeStart = {
+										x: e.clientX,
+										y: e.clientY,
+										w: rect.width,
+										h: rect.height,
+										left: rect.left,
+										top: rect.top,
+									};
+								});
 							});
 
-							// Mouse move event to drag the container
+							bonusContainer.addEventListener('mousedown', (e) => {
+								if (e.target.closest('.bonus-resize-handle') || e.target.closest('#close-bonus')) {
+									return;
+								}
+								if (!e.target.closest('.bonus-drag-handle')) {
+									return;
+								}
+								isDragging = true;
+								const rect = bonusContainerRect();
+								bonusContainer.style.right = 'auto';
+								offsetX = e.clientX - rect.left;
+								offsetY = e.clientY - rect.top;
+							});
+
 							document.addEventListener('mousemove', (e) => {
+								if (isResizing) {
+									const dx = e.clientX - resizeStart.x;
+									const dy = e.clientY - resizeStart.y;
+									const minW = 220;
+									const minH = 160;
+									let w = resizeStart.w;
+									let h = resizeStart.h;
+									let left = resizeStart.left;
+									let top = resizeStart.top;
+
+									if (resizeDir.includes('e')) w = resizeStart.w + dx;
+									if (resizeDir.includes('w')) {
+										w = resizeStart.w - dx;
+										left = resizeStart.left + dx;
+									}
+									if (resizeDir.includes('s')) h = resizeStart.h + dy;
+									if (resizeDir.includes('n')) {
+										h = resizeStart.h - dy;
+										top = resizeStart.top + dy;
+									}
+
+									w = Math.max(minW, w);
+									h = Math.max(minH, h);
+									if (resizeDir.includes('w')) {
+										left = resizeStart.left + (resizeStart.w - w);
+									}
+									if (resizeDir.includes('n')) {
+										top = resizeStart.top + (resizeStart.h - h);
+									}
+
+									bonusContainer.style.width = `${w}px`;
+									bonusContainer.style.height = `${h}px`;
+									bonusContainer.style.left = `${left}px`;
+									bonusContainer.style.top = `${top}px`;
+									scheduleBonusPanelFit();
+									return;
+								}
 								if (isDragging) {
 									const x = e.clientX - offsetX;
 									const y = e.clientY - offsetY;
-
-									// Ensure the container stays within the viewport
 									const maxX = window.innerWidth - bonusContainer.offsetWidth;
 									const maxY = window.innerHeight - bonusContainer.offsetHeight;
-
 									bonusContainer.style.left = `${Math.min(Math.max(x, 0), maxX)}px`;
 									bonusContainer.style.top = `${Math.min(Math.max(y, 0), maxY)}px`;
 								}
@@ -1746,29 +1901,27 @@
 							
 							// Toggle bonus container visibility on button click
 							document.getElementById('bonus').addEventListener('click', function() {
-								var container = document.getElementById('bonusContainer');
-								if (container.style.display === 'none') {
-									container.style.display = 'block';
-								} else {
-									container.style.display = 'none';
-								}
+								const hidden = bonusContainer.style.display === 'none' || bonusContainer.style.display === '';
+								setBonusPanelVisible(hidden);
 							});
 							// Mouse up event to stop dragging
 							document.addEventListener('mouseup', () => {
-								if (isDragging) {
+								if (isDragging || isResizing) {
 									isDragging = false;
-									// Save the current position to local storage
-									const position = {
-										left: parseInt(bonusContainer.style.left),
-										top: parseInt(bonusContainer.style.top),
-									};
-									localStorage.setItem('bonusContainerPosition', JSON.stringify(position));
+									isResizing = false;
+									resizeDir = '';
+									persistBonusContainerLayout();
+									scheduleBonusPanelFit();
 								}
 							});
 
+							window.addEventListener('resize', scheduleBonusPanelFit);
+							window.scheduleBonusPanelFit = scheduleBonusPanelFit;
+
 							// Close button functionality
-							document.getElementById("close-bonus").addEventListener("click", function () {
-								bonusContainer.style.display = "none"; // Hide the container
+							document.getElementById("close-bonus").addEventListener("click", function (e) {
+								e.stopPropagation();
+								setBonusPanelVisible(false);
 							});
 
 
